@@ -1,0 +1,25 @@
+services:
+  countdown:
+    build:
+      context: .
+      args:
+        VITE_ARRIVES_AT: ${VITE_ARRIVES_AT:-}
+        VITE_MOVES_IN_AT: ${VITE_MOVES_IN_AT:-}
+        VITE_WAIT_STARTED_AT: ${VITE_WAIT_STARTED_AT:-}
+        VITE_FROM_CITY: ${VITE_FROM_CITY:-}
+        VITE_TO_CITY: ${VITE_TO_CITY:-}
+        VITE_HOME_LABEL: ${VITE_HOME_LABEL:-}
+        VITE_EYEBROW: ${VITE_EYEBROW:-}
+        VITE_SETTLING_EYEBROW: ${VITE_SETTLING_EYEBROW:-}
+        VITE_MESSAGE: ${VITE_MESSAGE:-}
+        VITE_SETTLING_MESSAGE: ${VITE_SETTLING_MESSAGE:-}
+        VITE_ARRIVED_MESSAGE: ${VITE_ARRIVED_MESSAGE:-}
+        VITE_ARRIVAL_STEP: ${VITE_ARRIVAL_STEP:-}
+        VITE_MOVE_IN_STEP: ${VITE_MOVE_IN_STEP:-}
+        VITE_LOCALE: ${VITE_LOCALE:-}
+        VITE_TIME_ZONE: ${VITE_TIME_ZONE:-}
+    image: house-countdown
+    container_name: house-countdown
+    restart: unless-stopped
+    ports:
+      - "8080:80"
