@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/config.ts","./src/main.tsx","./src/usecountdown.ts","./src/vite-env.d.ts","./src/components/journeyarc.tsx","./src/components/milestones.tsx","./src/components/sky.tsx"],"version":"5.9.3"}
+{"root":["./src/App.tsx","./src/config.ts","./src/main.tsx","./src/useCountdown.ts","./src/vite-env.d.ts","./src/components/JourneyArc.tsx","./src/components/Milestones.tsx","./src/components/Sky.tsx"],"version":"5.9.3"}
