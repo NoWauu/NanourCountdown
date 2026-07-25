@@ -4,6 +4,7 @@ import { JourneyArc } from './components/JourneyArc';
 import { Milestones } from './components/Milestones';
 import { config, journeyDates } from './config';
 import { useJourney } from './useCountdown';
+import { Analytics } from '@vercel/analytics/nuxt/runtime';
 
 const pad = (value: number) => String(value).padStart(2, '0');
 
@@ -43,6 +44,7 @@ export function App() {
 
   return (
     <>
+      <Analytics />
       <Sky />
 
       <main className={`page${home ? ' page--home' : ''}`}>
