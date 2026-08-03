@@ -133,18 +133,18 @@ body {
 /* ------------------------------------------------------------- the train */
 
 .train {
-  --train-w: clamp(34rem, 92vw, 78rem);
+  --train-w: clamp(38rem, 104vw, 92rem);
   --train-bottom: clamp(1.25rem, 5vh, 3.5rem);
-  /* wheel bottoms sit at 274/300 of the viewBox, so the rail follows the width */
-  --rail-y: calc(var(--train-bottom) + 0.0186 * var(--train-w));
+  /* wheel bottoms sit at 274/320 of the viewBox, so the rail follows the width */
+  --rail-y: calc(var(--train-bottom) + 0.0329 * var(--train-w));
 
   position: fixed;
   inset: auto 0 0 0;
-  height: clamp(11rem, 34vh, 22rem);
+  height: clamp(13rem, 42vh, 27rem);
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  animation: train-in 1.6s ease-out both;
+  animation: train-in 1.8s ease-out both;
 }
 
 .train__track {
@@ -153,13 +153,14 @@ body {
   right: -4vw;
   bottom: var(--rail-y);
   height: 10px;
-  border-top: 2px solid rgba(255, 240, 228, 0.22);
-  border-bottom: 2px solid rgba(255, 240, 228, 0.1);
+  border-top: 2px solid rgba(255, 240, 228, 0.28);
+  border-bottom: 2px solid rgba(255, 240, 228, 0.12);
   background-image: repeating-linear-gradient(
     90deg,
-    rgba(255, 178, 122, 0.18) 0 14px,
+    rgba(255, 178, 122, 0.22) 0 14px,
     transparent 14px 46px
   );
+  box-shadow: 0 0 26px rgba(255, 125, 158, 0.18);
 }
 
 .train__rig {
@@ -167,14 +168,21 @@ body {
   left: 0;
   bottom: var(--train-bottom);
   width: var(--train-w);
-  animation: train-run 24s linear infinite;
+  animation: train-run 26s linear infinite;
 }
 
 .train__svg {
   display: block;
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 0 30px rgba(255, 125, 158, 0.28));
+  filter: drop-shadow(0 6px 40px rgba(255, 125, 158, 0.45));
+  animation: train-sway 2.6s ease-in-out infinite;
+}
+
+/* the light the train carries with it */
+.train__halo {
+  fill: url(#haloGlow);
+  animation: halo-breathe 4s ease-in-out infinite;
 }
 
 @keyframes train-run {
@@ -190,41 +198,56 @@ body {
 /* --- the stock itself, drawn as line art so the counter stays readable --- */
 
 .train__body {
-  fill: rgba(59, 30, 82, 0.5);
-  stroke: rgba(255, 240, 228, 0.6);
-  stroke-width: 3;
+  fill: url(#trainSkin);
+  stroke: url(#trainEdge);
+  stroke-width: 3.5;
 }
 
 .train__roof {
-  fill: rgba(255, 125, 158, 0.28);
-  stroke: rgba(255, 240, 228, 0.45);
+  fill: url(#trainRoof);
+  stroke: rgba(255, 240, 228, 0.5);
   stroke-width: 2.5;
 }
 
 .train__window {
-  fill: rgba(243, 206, 115, 0.4);
-  stroke: rgba(255, 240, 228, 0.35);
+  fill: rgba(243, 206, 115, 0.55);
+  stroke: rgba(255, 240, 228, 0.45);
   stroke-width: 2;
+  animation: window-warm 5s ease-in-out infinite;
+}
+
+/* the light spilling out of each window */
+.train__glow {
+  fill: url(#windowGlow);
 }
 
 .train__skirt {
   fill: rgba(21, 12, 43, 0.55);
-  stroke: rgba(255, 178, 122, 0.4);
+  stroke: rgba(255, 178, 122, 0.45);
   stroke-width: 2;
 }
 
 .train__band {
-  fill: rgba(255, 178, 122, 0.35);
+  fill: rgba(255, 178, 122, 0.4);
+}
+
+.train__crest {
+  fill: rgba(255, 125, 158, 0.55);
+  stroke: rgba(255, 240, 228, 0.6);
+  stroke-width: 1.4;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: crest-beat 1.9s ease-in-out infinite;
 }
 
 .train__smokebox {
   fill: rgba(21, 12, 43, 0.6);
-  stroke: rgba(255, 240, 228, 0.55);
-  stroke-width: 3;
+  stroke: url(#trainEdge);
+  stroke-width: 3.5;
 }
 
 .train__coupling {
-  stroke: rgba(255, 240, 228, 0.4);
+  stroke: rgba(255, 240, 228, 0.45);
   stroke-width: 5;
   stroke-linecap: round;
 }
@@ -233,9 +256,39 @@ body {
   fill: var(--gold);
 }
 
+.train__lampGlow {
+  fill: url(#lampGlow);
+  animation: lamp-pulse 2.8s ease-in-out infinite;
+}
+
 .train__beam {
-  fill: rgba(243, 206, 115, 0.12);
-  filter: blur(8px);
+  fill: url(#beamGlow);
+  filter: blur(10px);
+  animation: lamp-pulse 2.8s ease-in-out infinite;
+}
+
+/* --- the garland of hearts strung along the roofs --- */
+
+.train__string {
+  stroke: rgba(255, 240, 228, 0.35);
+  stroke-width: 2;
+  stroke-dasharray: 1 9;
+  stroke-linecap: round;
+}
+
+.train__bunting {
+  fill: rgba(255, 125, 158, 0.75);
+  transform-box: fill-box;
+  transform-origin: top center;
+  animation: bunting-sway 3.4s ease-in-out infinite;
+}
+
+.train__spark {
+  fill: var(--gold);
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: spark 2.2s ease-out infinite;
 }
 
 .train__tyre {
@@ -271,15 +324,53 @@ body {
 }
 
 .train__puff {
-  fill: rgba(255, 240, 228, 0.5);
+  fill: rgba(255, 240, 228, 0.55);
   transform-box: fill-box;
   transform-origin: center;
   opacity: 0;
-  animation: puff 3s ease-out infinite;
+  animation: puff 3.6s ease-out infinite;
 }
 
 @keyframes wheel-spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes train-sway {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-0.6%) rotate(-0.18deg); }
+}
+
+@keyframes halo-breathe {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+@keyframes window-warm {
+  0%, 100% { fill-opacity: 0.5; }
+  50% { fill-opacity: 0.78; }
+}
+
+@keyframes lamp-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+@keyframes crest-beat {
+  0%, 100% { transform: scale(1); }
+  18% { transform: scale(1.16); }
+  36% { transform: scale(1); }
+  54% { transform: scale(1.1); }
+}
+
+@keyframes bunting-sway {
+  0%, 100% { transform: rotate(-9deg); }
+  50% { transform: rotate(9deg); }
+}
+
+@keyframes spark {
+  0% { transform: translate(0, 0) scale(1); opacity: 0; }
+  12% { opacity: 0.9; }
+  100% { transform: translate(-150px, -70px) scale(0.2); opacity: 0; }
 }
 
 @keyframes rod-throw {
@@ -290,10 +381,11 @@ body {
   100% { transform: translate(8px, 0); }
 }
 
+/* distances are in the heart's own units, so they scale with each puff */
 @keyframes puff {
-  0% { transform: translate(0, 0) scale(0.25); opacity: 0; }
-  18% { opacity: 0.4; }
-  100% { transform: translate(-260px, -60px) scale(1.7); opacity: 0; }
+  0% { transform: translate(0, 0) scale(0.2) rotate(-14deg); opacity: 0; }
+  18% { opacity: 0.5; }
+  100% { transform: translate(-140px, -50px) scale(1.8) rotate(12deg); opacity: 0; }
 }
 
 /* ------------------------------------------------------------- the layout */
@@ -565,6 +657,14 @@ body {
   .page--home .journey__light,
   .train,
   .train__rig,
+  .train__svg,
+  .train__halo,
+  .train__window,
+  .train__lampGlow,
+  .train__beam,
+  .train__crest,
+  .train__bunting,
+  .train__spark,
   .train__wheel,
   .train__rod,
   .train__puff {
@@ -608,12 +708,12 @@ body {
   }
 
   .train {
-    --train-w: 150vw;
-    height: clamp(8rem, 26vh, 14rem);
-    opacity: 0.85;
+    --train-w: 170vw;
+    height: clamp(9rem, 30vh, 16rem);
+    opacity: 0.9;
   }
 
   .train__rig {
-    animation-duration: 18s;
+    animation-duration: 20s;
   }
 }
