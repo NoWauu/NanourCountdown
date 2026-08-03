@@ -153,9 +153,10 @@ body {
 
 .scenery {
   position: absolute;
-  left: 0;
+  /* hung past both edges so an offset layer never leaves a bare strip */
+  left: -50%;
   bottom: var(--rail-y);
-  width: 200%;
+  width: 300%;
   animation-name: scenery-run;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
@@ -197,7 +198,7 @@ body {
 
 @keyframes scenery-run {
   from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  to { transform: translateX(-33.3333%); }
 }
 
 .scenery__hill {
@@ -604,7 +605,7 @@ body {
    released into its loop instead of snapping straight to full speed. */
 .train--departing .train__rig {
   animation: depart-lurch 2.6s cubic-bezier(0.33, 0, 0.2, 1) both;
-  animation-delay: var(--pull-delay, 0s);
+  animation-delay: var(--launch-delay, 0s);
 }
 
 @keyframes depart-lurch {
@@ -613,39 +614,79 @@ body {
   100% { transform: translateX(0); }
 }
 
-.train--departing .scenery svg {
-  animation: launch-far 2.8s cubic-bezier(0.4, 0, 0.25, 1) both;
-  animation-delay: var(--pull-delay, 0s);
+/* The layer keeps looping underneath; this drifts the drawing the other way
+   at roughly the loop's own speed and then lets go, so the country starts
+   from a stand and works up to line speed instead of snapping to it. */
+.train--scrolling .scenery svg {
+  animation: launch-far 2.8s cubic-bezier(0.28, 0.5, 0.35, 1) both;
+  animation-delay: var(--launch-delay, 0s);
 }
 
-.train--departing .scenery--mid svg {
+.train--scrolling .scenery--mid svg {
   animation-name: launch-mid;
 }
 
-.train--departing .scenery--near svg {
+.train--scrolling .scenery--near svg {
   animation-name: launch-near;
 }
 
+/* The same trick on the wheels: an outer group turns backwards at first, at
+   about the speed the wheel is turning forwards, and lets go. It settles on a
+   whole number of turns, so nothing jumps when the class comes off. */
+.train.train--departing .train__wheelset {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wheel-launch 2.8s cubic-bezier(0.3, 0.636, 0.35, 1) both;
+  animation-delay: var(--launch-delay, 0s);
+}
+
+.train.train--departing .train__wheelset--driver {
+  animation-name: wheel-launch-driver;
+}
+
+.train.train--departing .train__rush {
+  animation: rush calc(var(--pace, 1) * 0.5s) linear infinite, launch-fade 2.8s ease-out both;
+  animation-delay: 0s, var(--launch-delay, 0s);
+}
+
+.train--departing .train__streaks {
+  animation: launch-fade 2.8s ease-in both;
+  animation-delay: var(--launch-delay, 0s);
+}
+
+@keyframes wheel-launch {
+  to { transform: rotate(-720deg); }
+}
+
+@keyframes wheel-launch-driver {
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes launch-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @keyframes launch-far {
-  from { transform: translateX(1.4%); }
-  to { transform: translateX(0); }
+  from { transform: translateX(0); }
+  to { transform: translateX(0.85%); }
 }
 
 @keyframes launch-mid {
-  from { transform: translateX(4.5%); }
-  to { transform: translateX(0); }
+  from { transform: translateX(0); }
+  to { transform: translateX(2.6%); }
 }
 
 @keyframes launch-near {
-  from { transform: translateX(13%); }
-  to { transform: translateX(0); }
+  from { transform: translateX(0); }
+  to { transform: translateX(7.8%); }
 }
 
 /* Coming in: the loop is already paused, so this one-shot carries the country
    the last few metres and eases it to a stand. */
 .train.train--braking .scenery svg {
-  animation: brake-far 2.8s cubic-bezier(0, 0, 0.2, 1) both;
-  animation-delay: var(--pull-delay, 0s);
+  animation: brake-far 3.4s cubic-bezier(0.25, 0.545, 0.4, 1) both;
+  animation-delay: var(--brake-delay, 0s);
 }
 
 .train.train--braking .scenery--mid svg {
@@ -657,25 +698,30 @@ body {
 }
 
 .train.train--braking .train__rig {
-  animation: brake-settle 2.8s cubic-bezier(0, 0, 0.2, 1) both;
-  animation-delay: var(--pull-delay, 0s);
+  animation: brake-settle 3.4s cubic-bezier(0.25, 0.545, 0.4, 1) both;
+  animation-delay: var(--brake-delay, 0s);
 }
 
 .train.train--braking .train__wheel {
-  animation: wheel-brake 2.8s cubic-bezier(0, 0, 0.2, 1) both;
-  animation-delay: var(--pull-delay, 0s);
+  animation: wheel-brake 3.4s cubic-bezier(0.25, 0.545, 0.4, 1) both;
+  animation-delay: var(--brake-delay, 0s);
 }
 
+/* Picks up from where the launch left the drawing, and runs it down to nothing
+   — the loop underneath is already paused, so this is the last of the motion. */
 @keyframes brake-far {
-  to { transform: translateX(-1.4%); }
+  from { transform: translateX(0.85%); }
+  to { transform: translateX(0); }
 }
 
 @keyframes brake-mid {
-  to { transform: translateX(-4.5%); }
+  from { transform: translateX(2.6%); }
+  to { transform: translateX(0); }
 }
 
 @keyframes brake-near {
-  to { transform: translateX(-13%); }
+  from { transform: translateX(7.8%); }
+  to { transform: translateX(0); }
 }
 
 @keyframes brake-settle {
@@ -684,7 +730,7 @@ body {
 }
 
 @keyframes wheel-brake {
-  to { transform: rotate(620deg); }
+  to { transform: rotate(800deg); }
 }
 
 /* Same frame as the train, but never moves with it: the platform and the
@@ -1382,6 +1428,9 @@ body {
   .train--departing .train__rig,
   .train.train--braking .train__rig,
   .train.train--braking .train__wheel,
+  .train.train--departing .train__wheelset,
+  .train.train--departing .train__rush,
+  .train--departing .train__streaks,
   .scenery svg,
   .cast__move,
   .cast__before,

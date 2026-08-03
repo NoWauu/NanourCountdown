@@ -4,9 +4,11 @@
  */
 
 /**
- * Every layer is one tile drawn twice, side by side, inside a strip twice as
- * wide as the page. Sliding the strip by exactly half its width loops without
- * a seam.
+ * Every layer is the same tile drawn three times inside a strip three pages
+ * wide, hung out past both edges of the screen. Sliding it by exactly one tile
+ * loops without a seam, and the spare tile either side means the country never
+ * runs out while the layer is offset — which it is, every time the train
+ * gathers speed or brakes.
  */
 export function Layer({ className, tile, height }: {
   className: string;
@@ -15,9 +17,10 @@ export function Layer({ className, tile, height }: {
 }) {
   return (
     <div className={`scenery ${className}`}>
-      <svg viewBox={`0 0 2000 ${height}`} preserveAspectRatio="none" fill="none">
-        <g>{tile}</g>
-        <g transform="translate(1000 0)">{tile}</g>
+      <svg viewBox={`0 0 3000 ${height}`} preserveAspectRatio="none" fill="none">
+        {[0, 1000, 2000].map((x) => (
+          <g key={x} transform={`translate(${x} 0)`}>{tile}</g>
+        ))}
       </svg>
     </div>
   );
