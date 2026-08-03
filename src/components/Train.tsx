@@ -53,11 +53,13 @@ function Coach({ x }: { x: number }) {
       <rect className="train__skirt" x={x + 8} y={222} width={COACH_WIDTH - 16} height={10} rx={5} />
 
       {[x + 58, x + 104, x + 196, x + 242].map((wx) => (
-        <g key={wx} className="train__wheel">
-          <circle className="train__tyre" cx={wx} cy={244} r={20} />
-          <circle className="train__hub" cx={wx} cy={244} r={5} />
-          <line className="train__spoke" x1={wx - 20} y1={244} x2={wx + 20} y2={244} />
-          <line className="train__spoke" x1={wx} y1={224} x2={wx} y2={264} />
+        <g key={wx} className="train__wheelset">
+          <g className="train__wheel">
+            <circle className="train__tyre" cx={wx} cy={244} r={20} />
+            <circle className="train__hub" cx={wx} cy={244} r={5} />
+            <line className="train__spoke" x1={wx - 20} y1={244} x2={wx + 20} y2={244} />
+            <line className="train__spoke" x1={wx} y1={224} x2={wx} y2={264} />
+          </g>
         </g>
       ))}
     </g>
@@ -171,7 +173,16 @@ export function Train({ origin, destination, phase, phaseElapsed, rideProgress }
     <div
       className={className}
       aria-hidden="true"
-      style={{ ['--pace' as string]: pace, ['--pull-delay' as string]: `${-anchor}s` }}
+      style={{
+        ['--pace' as string]: pace,
+        ['--pull-delay' as string]: `${-anchor}s`,
+        /* Speeding up and slowing down have to pick up exactly where the other
+           left off, so they start when the class lands rather than being
+           re-seeked to the clock — except on a page opened long after the act
+           began, where they are simply already over. */
+        ['--launch-delay' as string]: anchor < 6 ? '0s' : '-30s',
+        ['--brake-delay' as string]: anchor < 6 ? '0s' : '-30s',
+      }}
     >
       <Layer className="scenery--far" height={300} tile={<FarTile />} />
       <Layer className="scenery--mid" height={300} tile={<MidTile destination={destination} sign={rolling} />} />
@@ -275,24 +286,28 @@ export function Train({ origin, destination, phase, phaseElapsed, rideProgress }
             <rect className="train__skirt" x={716} y={222} width={490} height={12} rx={6} />
 
             {drivers.map((cx) => (
-              <g key={cx} className="train__wheel train__wheel--driver">
-                <circle className="train__tyre" cx={cx} cy={238} r={36} />
-                <circle className="train__hub" cx={cx} cy={238} r={8} />
-                <line className="train__spoke" x1={cx - 36} y1={238} x2={cx + 36} y2={238} />
-                <line className="train__spoke" x1={cx} y1={202} x2={cx} y2={274} />
-                <line className="train__spoke" x1={cx - 25} y1={213} x2={cx + 25} y2={263} />
-                <line className="train__spoke" x1={cx - 25} y1={263} x2={cx + 25} y2={213} />
+              <g key={cx} className="train__wheelset train__wheelset--driver">
+                <g className="train__wheel train__wheel--driver">
+                  <circle className="train__tyre" cx={cx} cy={238} r={36} />
+                  <circle className="train__hub" cx={cx} cy={238} r={8} />
+                  <line className="train__spoke" x1={cx - 36} y1={238} x2={cx + 36} y2={238} />
+                  <line className="train__spoke" x1={cx} y1={202} x2={cx} y2={274} />
+                  <line className="train__spoke" x1={cx - 25} y1={213} x2={cx + 25} y2={263} />
+                  <line className="train__spoke" x1={cx - 25} y1={263} x2={cx + 25} y2={213} />
+                </g>
               </g>
             ))}
 
             <line className="train__rod" x1={806} y1={256} x2={1018} y2={256} />
 
             {[1122, 1180].map((cx) => (
-              <g key={cx} className="train__wheel train__wheel--pony">
-                <circle className="train__tyre" cx={cx} cy={250} r={20} />
-                <circle className="train__hub" cx={cx} cy={250} r={5} />
-                <line className="train__spoke" x1={cx - 20} y1={250} x2={cx + 20} y2={250} />
-                <line className="train__spoke" x1={cx} y1={230} x2={cx} y2={270} />
+              <g key={cx} className="train__wheelset">
+                <g className="train__wheel train__wheel--pony">
+                  <circle className="train__tyre" cx={cx} cy={250} r={20} />
+                  <circle className="train__hub" cx={cx} cy={250} r={5} />
+                  <line className="train__spoke" x1={cx - 20} y1={250} x2={cx + 20} y2={250} />
+                  <line className="train__spoke" x1={cx} y1={230} x2={cx} y2={270} />
+                </g>
               </g>
             ))}
           </g>
