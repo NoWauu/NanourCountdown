@@ -36,6 +36,8 @@ export interface CountdownConfig {
   /** Names of the two milestones, shown on the step markers. */
   arrivalStep: string;
   moveInStep: string;
+  /** How early the train pulls into the platform, in seconds. */
+  boardingLeadSeconds: number;
   /** Locale used to format the dates. */
   locale: string;
   /** IANA time zone the dates are displayed in. */
@@ -57,6 +59,7 @@ export const config: CountdownConfig = {
   arrivedMessage: env.VITE_ARRIVED_MESSAGE ?? "I'm here. Open the door.",
   arrivalStep: env.VITE_ARRIVAL_STEP ?? 'I land',
   moveInStep: env.VITE_MOVE_IN_STEP ?? 'we move in',
+  boardingLeadSeconds: Number(env.VITE_BOARDING_LEAD_SECONDS ?? 300),
   locale: env.VITE_LOCALE ?? 'en-GB',
   timeZone: env.VITE_TIME_ZONE ?? 'Europe/Paris',
 };
@@ -67,4 +70,10 @@ export const movesInAt = new Date(config.movesInAt);
 export const waitStartedAt = new Date(config.waitStartedAt);
 
 /** One stable object so the countdown hook does not restart every render. */
-export const journeyDates = { waitStartedAt, departsAt, arrivesAt, movesInAt };
+export const journeyDates = {
+  waitStartedAt,
+  departsAt,
+  arrivesAt,
+  movesInAt,
+  boardingLead: config.boardingLeadSeconds * 1000,
+};

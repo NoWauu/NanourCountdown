@@ -76,7 +76,7 @@ export type Stage = 'travelling' | 'settling' | 'home';
  */
 export type RidePhase = 'waiting' | 'boarding' | 'riding' | 'arrived';
 
-/** How early the train pulls into the platform. */
+/** How early the train pulls into the platform, unless the config says otherwise. */
 export const BOARDING_LEAD = 5 * MINUTE;
 
 export interface Journey extends Countdown {
@@ -93,11 +93,13 @@ export interface JourneyDates {
   departsAt: Date;
   arrivesAt: Date;
   movesInAt: Date;
+  /** Milliseconds the train stands at the platform before it leaves. */
+  boardingLead?: number;
 }
 
 function ridePhaseOf(dates: JourneyDates, now: Date): { ridePhase: RidePhase; phaseElapsed: number } {
   const time = now.getTime();
-  const boardsAt = dates.departsAt.getTime() - BOARDING_LEAD;
+  const boardsAt = dates.departsAt.getTime() - (dates.boardingLead ?? BOARDING_LEAD);
   const since = (from: number) => Math.max(0, (time - from) / SECOND);
 
   if (time < boardsAt) return { ridePhase: 'waiting', phaseElapsed: 0 };
