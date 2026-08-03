@@ -1,157 +1,29 @@
 /**
- * The ride itself. From the departure time until the arrival, the bottom of
- * the page becomes a moving window: the train holds its place while three
- * layers of scenery rush past it at different speeds. It stays in the bottom
- * band, so the counter above it is never covered.
+ * The ride, in four acts:
+ *
+ *   waiting  — nothing on screen yet
+ *   boarding — the train pulls in, he walks up the platform and gets on
+ *   riding   — the country rushes past while he sits in a lit window
+ *   arrived  — he steps down at the far end, and she is there
+ *
+ * The coarse state comes from React (it re-renders every second anyway); the
+ * loops and the sequencing are CSS, anchored with negative animation delays so
+ * a page loaded halfway through an act picks it up in the right place.
  */
 
-const HEART =
-  'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z';
+import { useRef } from 'react';
+import { Layer, FarTile, MidTile, NearTile } from './Scenery';
+import { Heart, Walking, Waiting, Hugging, Passenger } from './Figures';
+import type { RidePhase } from '../useCountdown';
 
-/**
- * Heart drawn at its own scale, centred on (x, y). The placement lives on a
- * wrapping group because a CSS animation on the path would override a
- * `transform` attribute set on the same element.
- */
-function Heart({ x, y, size, className, style }: {
-  x: number;
-  y: number;
-  size: number;
-  className: string;
-  style?: React.CSSProperties;
-}) {
-  const scale = size / 24;
-  return (
-    <g transform={`translate(${x - size / 2} ${y - size / 2}) scale(${scale})`}>
-      <path className={className} style={style} d={HEART} />
-    </g>
-  );
-}
-
-/* ------------------------------------------------------------ the scenery */
-
-/**
- * Every layer is one tile drawn twice, side by side, inside a strip twice as
- * wide as the page. Sliding the strip by exactly half its width loops without
- * a seam, and each layer runs at its own speed to give the ride some depth.
- */
-function Layer({ className, tile, height }: {
-  className: string;
-  tile: React.ReactNode;
-  height: number;
-}) {
-  return (
-    <div className={`scenery ${className}`}>
-      <svg viewBox={`0 0 2000 ${height}`} preserveAspectRatio="none" fill="none">
-        <g>{tile}</g>
-        <g transform="translate(1000 0)">{tile}</g>
-      </svg>
-    </div>
-  );
-}
-
-/** Far away: hills, and a town with its lights on. */
-function FarTile() {
-  const lights = [612, 636, 668, 700, 726, 760, 792];
-
-  return (
-    <>
-      <path
-        className="scenery__hill"
-        d="M0 300 C 90 232 150 250 220 214 C 300 172 360 206 430 236 C 500 266 560 246 640 220
-           C 720 194 790 226 860 250 C 920 270 960 284 1000 300 Z"
-      />
-      <path
-        className="scenery__hill scenery__hill--back"
-        d="M0 300 C 60 268 120 210 200 196 C 280 182 320 232 400 244 C 470 254 520 214 600 200
-           C 690 184 760 224 840 234 C 910 242 960 276 1000 300 Z"
-      />
-      {lights.map((x, i) => (
-        <circle
-          key={x}
-          className="scenery__lamp"
-          cx={x}
-          cy={228 + (i % 3) * 12}
-          r={3}
-          style={{ animationDelay: `${i * 0.9}s` }}
-        />
-      ))}
-    </>
-  );
-}
-
-/** Middle distance: pines, two lit houses, and the sign for the destination. */
-function MidTile({ destination }: { destination: string }) {
-  const pines = [40, 128, 208, 700, 786, 880, 962];
-
-  return (
-    <>
-      {pines.map((x, i) => {
-        const h = 116 + (i % 3) * 34;
-        return (
-          <path
-            key={x}
-            className="scenery__pine"
-            d={`M${x} 300 L${x + 26} ${300 - h} L${x + 52} 300 Z`}
-          />
-        );
-      })}
-
-      {/* two houses, windows lit */}
-      <g className="scenery__house">
-        <path className="scenery__roof" d="M300 232 L346 194 L392 232 Z" />
-        <rect className="scenery__wall" x={308} y={230} width={76} height={70} />
-        <rect className="scenery__pane" x={322} y={248} width={20} height={20} />
-        <rect className="scenery__pane" x={352} y={248} width={20} height={20} />
-        <rect className="scenery__pane" x={336} y={278} width={22} height={22} />
-      </g>
-      <g className="scenery__house">
-        <path className="scenery__roof" d="M424 250 L462 218 L500 250 Z" />
-        <rect className="scenery__wall" x={432} y={248} width={62} height={52} />
-        <rect className="scenery__pane" x={444} y={262} width={16} height={16} />
-        <rect className="scenery__pane" x={468} y={262} width={16} height={16} />
-      </g>
-
-      {/* the sign on the platform */}
-      <g className="scenery__sign">
-        <rect className="scenery__post" x={578} y={236} width={7} height={64} />
-        <rect className="scenery__post" x={634} y={236} width={7} height={64} />
-        <rect className="scenery__board" x={548} y={186} width={124} height={52} rx={8} />
-        <text className="scenery__label" x={610} y={219} textAnchor="middle">
-          {destination}
-        </text>
-      </g>
-    </>
-  );
-}
-
-/** Closest, in front of the train: telegraph poles, wires and grass. */
-function NearTile() {
-  return (
-    <>
-      <path className="scenery__wire" d="M0 96 Q 250 168 500 96 T 1000 96" />
-      <path className="scenery__wire" d="M0 118 Q 250 196 500 118 T 1000 118" />
-
-      {[0, 500].map((x) => (
-        <g key={x} className="scenery__pole">
-          <rect x={x - 8} y={72} width={16} height={228} />
-          <rect x={x - 44} y={84} width={88} height={11} rx={4} />
-          <rect x={x - 32} y={112} width={64} height={9} rx={4} />
-        </g>
-      ))}
-
-      {[80, 190, 320, 430, 560, 690, 820, 930].map((x, i) => (
-        <path
-          key={x}
-          className="scenery__grass"
-          d={`M${x} 300 Q ${x + 10} ${262 - (i % 3) * 14} ${x + 26} 300 Z`}
-        />
-      ))}
-    </>
-  );
-}
-
-/* -------------------------------------------------------------- the train */
+/** Seconds the train takes to roll into the platform and stop. */
+const PULL_IN = 7;
+/** Seconds from the train stopping to him being aboard. */
+const BOARDING_WALK = 13;
+/** The door of the second coach, in the train's own coordinates. */
+const DOOR_X = 660;
+/** Where everyone stands: the wheels rest on 274. */
+const PLATFORM_Y = 276;
 
 const COACH_WIDTH = 300;
 
@@ -192,26 +64,76 @@ function Coach({ x }: { x: number }) {
   );
 }
 
-/* The garland: one quadratic curve, hearts hanging off it at even steps. */
-const GARLAND = { start: { x: 42, y: 108 }, control: { x: 470, y: 26 }, end: { x: 892, y: 84 } };
+/** Platform furniture: the name of the station, and lamps over the edge. */
+function Station({ name }: { name: string }) {
+  return (
+    <g className="station">
+      {[610, 1352].map((x) => (
+        <g key={x} className="station__lamp">
+          <ellipse className="station__pool" cx={x} cy={PLATFORM_Y} rx={96} ry={15} />
+          <rect className="station__post" x={x - 4} y={104} width={8} height={172} />
+          <path className="station__shade" d={`M${x - 22} 104 L${x + 22} 104 L${x + 12} 86 L${x - 12} 86 Z`} />
+          <circle className="station__bulb" cx={x} cy={110} r={26} />
+        </g>
+      ))}
 
-function garlandPoint(t: number) {
-  const inv = 1 - t;
-  const { start, control, end } = GARLAND;
-  return {
-    x: inv * inv * start.x + 2 * inv * t * control.x + t * t * end.x,
-    y: inv * inv * start.y + 2 * inv * t * control.y + t * t * end.y,
-  };
+      <g className="station__sign">
+        <rect className="station__post" x={144} y={96} width={9} height={180} />
+        <rect className="station__board" x={40} y={38} width={218} height={60} rx={10} />
+        <text className="station__name" x={149} y={76} textAnchor="middle">
+          {name}
+        </text>
+      </g>
+    </g>
+  );
+}
+
+/**
+ * He appears part-way into the boarding act, so his walk is anchored to the
+ * moment he shows up rather than to the start of the act.
+ */
+function Boarder({ elapsed }: { elapsed: number }) {
+  const start = useRef(elapsed).current;
+
+  return (
+    <g
+      className="cast cast--boarding"
+      transform={`translate(100 ${PLATFORM_Y}) scale(1.3)`}
+      style={{ ['--delay' as string]: `${-(start - PULL_IN)}s` }}
+    >
+      <g className="cast__move">
+        <Walking suitcase />
+      </g>
+    </g>
+  );
 }
 
 interface TrainProps {
-  /** City on the platform sign that flies past. */
+  /** Where the train is leaving from — on the sign while he boards. */
+  origin: string;
+  /** Where it is going — on the sign at the far end, and out in the country. */
   destination: string;
+  phase: RidePhase;
+  /** Seconds since this phase began. */
+  phaseElapsed: number;
   /** Share of the ride already done, 0 to 1 — the train speeds up towards the end. */
   rideProgress: number;
 }
 
-export function Train({ destination, rideProgress }: TrainProps) {
+/**
+ * Where in the act we were when this phase started on screen. The page
+ * re-renders every second; if the CSS delays followed `phaseElapsed` they
+ * would re-seek every animation each time and the scene would stutter. Taking
+ * the reading once per phase lets the browser keep the clock from there.
+ */
+function usePhaseAnchor(phase: RidePhase, phaseElapsed: number): number {
+  const anchor = useRef({ phase, phaseElapsed });
+  if (anchor.current.phase !== phase) anchor.current = { phase, phaseElapsed };
+  return anchor.current.phaseElapsed;
+}
+
+export function Train({ origin, destination, phase, phaseElapsed, rideProgress }: TrainProps) {
+  const anchor = usePhaseAnchor(phase, phaseElapsed);
   /**
    * Every animation is timed off this multiplier, so the whole scene runs a
    * little faster the closer the arrival gets. Quantised, otherwise the
@@ -219,18 +141,54 @@ export function Train({ destination, rideProgress }: TrainProps) {
    */
   const pace = Math.round((1.2 - 0.55 * rideProgress) * 20) / 20;
 
+  const rolling = phase === 'riding';
+  const pulling = phase === 'boarding' && phaseElapsed < PULL_IN;
+  const departing = rolling && phaseElapsed < 4;
+  /** Held for the whole act: the braking slide is where the country came to rest. */
+  const braking = phase === 'arrived';
+  /** Wheels turning: either out on the line, or still coasting into the platform. */
+  const running = rolling || pulling;
+
+  const walkingUp = phase === 'boarding' && phaseElapsed >= PULL_IN - 1 && phaseElapsed < PULL_IN + BOARDING_WALK + 1;
+  const seated = rolling || (phase === 'boarding' && phaseElapsed >= PULL_IN + BOARDING_WALK);
+  const atStation = phase !== 'riding';
+
   const drivers = [812, 912, 1012];
   const garland = Array.from({ length: 11 }, (_, i) => garlandPoint(i / 10));
   const garlandPath = `M ${GARLAND.start.x} ${GARLAND.start.y} Q ${GARLAND.control.x} ${GARLAND.control.y} ${GARLAND.end.x} ${GARLAND.end.y}`;
 
+  const className = [
+    'train',
+    rolling ? 'train--scrolling' : 'train--stopped',
+    running ? 'train--running' : '',
+    pulling ? 'train--pulling' : '',
+    departing ? 'train--departing' : '',
+    braking ? 'train--braking' : '',
+    phase === 'arrived' ? 'train--arrived' : '',
+  ].filter(Boolean).join(' ');
+
   return (
-    <div className="train" aria-hidden="true" style={{ ['--pace' as string]: pace }}>
+    <div
+      className={className}
+      aria-hidden="true"
+      style={{ ['--pace' as string]: pace, ['--pull-delay' as string]: `${-anchor}s` }}
+    >
       <Layer className="scenery--far" height={300} tile={<FarTile />} />
-      <Layer className="scenery--mid" height={300} tile={<MidTile destination={destination} />} />
+      <Layer className="scenery--mid" height={300} tile={<MidTile destination={destination} sign={rolling} />} />
 
       <div className="train__haze" />
       <div className="train__track" />
       <div className="train__rush" />
+      {atStation && <div className="train__platform" />}
+
+      {/* the platform stands still while the train slides in and out of it */}
+      {atStation && (
+        <div className="train__stage train__stage--back">
+          <svg viewBox="0 0 1400 320" fill="none">
+            <Station name={phase === 'arrived' ? destination : origin} />
+          </svg>
+        </div>
+      )}
 
       <div className="train__rig">
         <svg className="train__svg" viewBox="0 0 1400 320" fill="none">
@@ -264,6 +222,9 @@ export function Train({ destination, rideProgress }: TrainProps) {
               <stop offset="0%" stopColor="var(--gold)" stopOpacity="0.35" />
               <stop offset="100%" stopColor="var(--gold)" stopOpacity="0" />
             </linearGradient>
+            <clipPath id="coachWindow">
+              <rect x={478} y={148} width={44} height={40} rx={6} />
+            </clipPath>
           </defs>
 
           {/* warm pool of light the train carries with it */}
@@ -275,6 +236,15 @@ export function Train({ destination, rideProgress }: TrainProps) {
 
           <Coach x={30} />
           <Coach x={370} />
+
+          {/* him, through the second window of the second coach */}
+          {seated && (
+            <g className="train__passenger" clipPath="url(#coachWindow)">
+              <g transform={`translate(500 ${186})`}>
+                <Passenger />
+              </g>
+            </g>
+          )}
 
           {/* the locomotive */}
           <g className="train__loco">
@@ -369,8 +339,51 @@ export function Train({ destination, rideProgress }: TrainProps) {
               />
             ))}
           </g>
+
         </svg>
       </div>
+
+      {/* the people, on the platform in front of the train — they stay put */}
+      {(walkingUp || phase === 'arrived') && (
+        <div className="train__stage train__stage--front">
+          <svg viewBox="0 0 1400 320" fill="none">
+            {/* him, walking up the platform to the door */}
+            {walkingUp && <Boarder elapsed={phaseElapsed} />}
+
+            {/* the far end: he steps down, she is waiting, they meet */}
+            {phase === 'arrived' && (
+              <g className="reunion" style={{ ['--delay' as string]: `${-anchor}s` }}>
+                <g className="cast cast--traveller" transform={`translate(${DOOR_X} ${PLATFORM_Y}) scale(1.3)`}>
+                  <g className="cast__move">
+                    <g className="cast__before"><Walking suitcase /></g>
+                    <g className="cast__after"><Hugging /></g>
+                  </g>
+                </g>
+
+                <g className="cast cast--greeter" transform={`translate(925 ${PLATFORM_Y}) scale(-1.3 1.3)`}>
+                  <g className="cast__move">
+                    <g className="cast__before"><Waiting /></g>
+                    <g className="cast__after"><Hugging hair /></g>
+                  </g>
+                </g>
+
+                <g className="cast__joy" transform="translate(868 144)">
+                  {[0, 1, 2].map((i) => (
+                    <Heart
+                      key={i}
+                      className="joy__heart"
+                      x={(i - 1) * 30}
+                      y={0}
+                      size={20 + (i % 2) * 10}
+                      style={{ animationDelay: `${i * 1.1}s` }}
+                    />
+                  ))}
+                </g>
+              </g>
+            )}
+          </svg>
+        </div>
+      )}
 
       <Layer className="scenery--near" height={300} tile={<NearTile />} />
 
@@ -390,4 +403,16 @@ export function Train({ destination, rideProgress }: TrainProps) {
       </div>
     </div>
   );
+}
+
+/* The garland: one quadratic curve, hearts hanging off it at even steps. */
+const GARLAND = { start: { x: 42, y: 108 }, control: { x: 470, y: 26 }, end: { x: 892, y: 84 } };
+
+function garlandPoint(t: number) {
+  const inv = 1 - t;
+  const { start, control, end } = GARLAND;
+  return {
+    x: inv * inv * start.x + 2 * inv * t * control.x + t * t * end.x,
+    y: inv * inv * start.y + 2 * inv * t * control.y + t * t * end.y,
+  };
 }

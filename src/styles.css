@@ -557,6 +557,530 @@ body {
   100% { transform: translate(-260px, -70px) scale(2.1) rotate(14deg); opacity: 0; }
 }
 
+/* ------------------------------------------------- standing at a platform */
+
+/* Stopped: the country holds still, the sleepers stop streaming, the wheels
+   and the rattle stop with them. The train keeps breathing steam. */
+.train--stopped .scenery,
+.train--stopped .train__rush {
+  animation-play-state: paused;
+}
+
+.train--stopped .train__rush {
+  opacity: 0.4;
+}
+
+.train--stopped .streak {
+  display: none;
+}
+
+.train--stopped .scenery--near {
+  filter: none;
+  opacity: 0.55;
+}
+
+.train:not(.train--running) .train__wheel,
+.train:not(.train--running) .train__rod,
+.train:not(.train--running) .train__svg {
+  animation: none;
+}
+
+.train--stopped .train__puff {
+  animation-duration: calc(var(--pace, 1) * 5.5s);
+}
+
+/* rolling in and easing to a stand */
+.train--pulling .train__rig {
+  animation: pull-in 6s cubic-bezier(0.25, 0.25, 0.3, 1) both;
+  animation-delay: var(--pull-delay, 0s);
+}
+
+@keyframes pull-in {
+  from { transform: translateX(-58%); }
+  to { transform: translateX(0); }
+}
+
+/* Pulling away: the train takes up the slack, and the country outside gets
+   released into its loop instead of snapping straight to full speed. */
+.train--departing .train__rig {
+  animation: depart-lurch 2.6s cubic-bezier(0.33, 0, 0.2, 1) both;
+  animation-delay: var(--pull-delay, 0s);
+}
+
+@keyframes depart-lurch {
+  0% { transform: translateX(0); }
+  30% { transform: translateX(-14px); }
+  100% { transform: translateX(0); }
+}
+
+.train--departing .scenery svg {
+  animation: launch-far 2.8s cubic-bezier(0.4, 0, 0.25, 1) both;
+  animation-delay: var(--pull-delay, 0s);
+}
+
+.train--departing .scenery--mid svg {
+  animation-name: launch-mid;
+}
+
+.train--departing .scenery--near svg {
+  animation-name: launch-near;
+}
+
+@keyframes launch-far {
+  from { transform: translateX(1.4%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes launch-mid {
+  from { transform: translateX(4.5%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes launch-near {
+  from { transform: translateX(13%); }
+  to { transform: translateX(0); }
+}
+
+/* Coming in: the loop is already paused, so this one-shot carries the country
+   the last few metres and eases it to a stand. */
+.train.train--braking .scenery svg {
+  animation: brake-far 2.8s cubic-bezier(0, 0, 0.2, 1) both;
+  animation-delay: var(--pull-delay, 0s);
+}
+
+.train.train--braking .scenery--mid svg {
+  animation-name: brake-mid;
+}
+
+.train.train--braking .scenery--near svg {
+  animation-name: brake-near;
+}
+
+.train.train--braking .train__rig {
+  animation: brake-settle 2.8s cubic-bezier(0, 0, 0.2, 1) both;
+  animation-delay: var(--pull-delay, 0s);
+}
+
+.train.train--braking .train__wheel {
+  animation: wheel-brake 2.8s cubic-bezier(0, 0, 0.2, 1) both;
+  animation-delay: var(--pull-delay, 0s);
+}
+
+@keyframes brake-far {
+  to { transform: translateX(-1.4%); }
+}
+
+@keyframes brake-mid {
+  to { transform: translateX(-4.5%); }
+}
+
+@keyframes brake-near {
+  to { transform: translateX(-13%); }
+}
+
+@keyframes brake-settle {
+  from { transform: translateX(-16px); }
+  to { transform: translateX(0); }
+}
+
+@keyframes wheel-brake {
+  to { transform: rotate(620deg); }
+}
+
+/* Same frame as the train, but never moves with it: the platform and the
+   people on it stay where they are while the train slides in and out. */
+.train__stage {
+  position: absolute;
+  left: 50%;
+  margin-left: calc(var(--train-w) / -2);
+  bottom: var(--train-bottom);
+  width: var(--train-w);
+}
+
+.train__stage svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.train__stage--back {
+  animation: train-in 1.4s ease-out both;
+}
+
+.train__stage--front {
+  animation: train-in 0.8s ease-out both;
+}
+
+.train__platform {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--rail-y) - 0.2rem);
+  height: 0.4rem;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 240, 228, 0.4) 10%,
+    rgba(255, 240, 228, 0.4) 90%,
+    transparent
+  );
+  box-shadow: 0 8px 34px rgba(243, 206, 115, 0.2);
+}
+
+.station__post {
+  fill: rgba(21, 12, 43, 0.92);
+  stroke: rgba(255, 240, 228, 0.35);
+  stroke-width: 2;
+}
+
+.station__shade {
+  fill: rgba(107, 47, 85, 0.95);
+  stroke: rgba(255, 240, 228, 0.45);
+  stroke-width: 2;
+}
+
+.station__bulb {
+  fill: url(#lampGlow);
+  animation: lamp-pulse 4.5s ease-in-out infinite;
+}
+
+.station__pool {
+  fill: url(#lampGlow);
+  opacity: 0.45;
+}
+
+.station__board {
+  fill: rgba(21, 12, 43, 0.92);
+  stroke: var(--rose);
+  stroke-width: 3;
+}
+
+.station__name {
+  fill: var(--cream);
+  font-family: var(--body);
+  font-size: 34px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------ the two of us */
+
+.figure__torso {
+  fill: rgba(21, 12, 43, 0.88);
+  stroke: rgba(255, 240, 228, 0.72);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.figure__head {
+  fill: rgba(21, 12, 43, 0.92);
+  stroke: rgba(255, 240, 228, 0.72);
+  stroke-width: 2.5;
+}
+
+.figure__hair {
+  fill: rgba(107, 47, 85, 0.95);
+  stroke: rgba(255, 240, 228, 0.5);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.figure__limb {
+  stroke: rgba(255, 240, 228, 0.75);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+}
+
+.figure__case {
+  fill: rgba(107, 47, 85, 0.95);
+  stroke: rgba(255, 240, 228, 0.6);
+  stroke-width: 2;
+}
+
+/* the walk */
+.figure--walk {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: figure-bob 0.86s ease-in-out infinite;
+}
+
+.figure--walk .figure__limb--far {
+  animation: step-back 0.86s ease-in-out infinite;
+}
+
+.figure--walk .figure__limb--near {
+  animation: step-fore 0.86s ease-in-out infinite;
+}
+
+@keyframes figure-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.5px); }
+}
+
+@keyframes step-fore {
+  0%, 100% { transform: rotate(21deg); }
+  50% { transform: rotate(-21deg); }
+}
+
+@keyframes step-back {
+  0%, 100% { transform: rotate(-21deg); }
+  50% { transform: rotate(21deg); }
+}
+
+/* waiting on the platform, waving him over */
+.figure--wait {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: figure-idle 3.6s ease-in-out infinite;
+}
+
+.figure__wave {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: wave 1.15s ease-in-out infinite;
+}
+
+@keyframes figure-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-0.8px); }
+}
+
+@keyframes wave {
+  0%, 100% { transform: rotate(-118deg); }
+  50% { transform: rotate(-158deg); }
+}
+
+/* the hug */
+.figure__lean {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: hug-sway 4.4s ease-in-out infinite;
+}
+
+@keyframes hug-sway {
+  0%, 100% { transform: rotate(11deg); }
+  50% { transform: rotate(15deg); }
+}
+
+/* --- the two sequences: getting on, and getting off into her arms --- */
+
+.cast--boarding .cast__move {
+  animation: board-walk 13s linear both;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes board-walk {
+  0% { transform: translateX(0); opacity: 1; }
+  84% { transform: translateX(415px); opacity: 1; }
+  94% { transform: translateX(431px); opacity: 0.15; }
+  100% { transform: translateX(431px); opacity: 0; }
+}
+
+.cast--traveller .cast__move {
+  animation: alight 20s ease-in-out both;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes alight {
+  0% { transform: translateX(0); opacity: 0; }
+  6% { transform: translateX(0); opacity: 1; }
+  12% { transform: translateX(12px); }
+  70% { transform: translateX(138px); }
+  78%, 100% { transform: translateX(150px); }
+}
+
+.cast--greeter .cast__move {
+  animation: greet 20s ease-in-out both;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes greet {
+  0%, 66% { transform: translateX(0); }
+  78%, 100% { transform: translateX(24px); }
+}
+
+/* she reads warmer than he does, so the two of them stay legible as two */
+.cast--greeter .figure__torso {
+  stroke: rgba(255, 178, 122, 0.85);
+}
+
+.cast--greeter .figure__limb {
+  stroke: rgba(255, 178, 122, 0.85);
+}
+
+.cast--greeter .figure__head {
+  stroke: rgba(255, 178, 122, 0.85);
+}
+
+/* one pose fades out as the other fades in — simpler than stopping a walk */
+.cast__before {
+  animation: swap-out 20s linear both;
+  animation-delay: var(--delay, 0s);
+}
+
+.cast__after,
+.cast__joy {
+  animation: swap-in 20s linear both;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes swap-out {
+  0%, 74% { opacity: 1; }
+  78%, 100% { opacity: 0; }
+}
+
+@keyframes swap-in {
+  0%, 74% { opacity: 0; }
+  78%, 100% { opacity: 1; }
+}
+
+.joy__heart {
+  fill: rgba(255, 125, 158, 0.85);
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: joy-rise 3.6s ease-out infinite;
+}
+
+@keyframes joy-rise {
+  0% { transform: translateY(0) scale(0.4); opacity: 0; }
+  22% { opacity: 0.95; }
+  100% { transform: translateY(-90px) scale(1.25); opacity: 0; }
+}
+
+/* ------------------------------------------------- him, through the window */
+
+.train__passenger {
+  animation: train-in 1.2s ease-out both;
+}
+
+/* six poses share one loop; each takes the window for a sixth of it */
+.passenger__pose {
+  opacity: 0;
+  animation-name: pose-cycle;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes pose-cycle {
+  0% { opacity: 0; }
+  1%, 15% { opacity: 1; }
+  16.6%, 100% { opacity: 0; }
+}
+
+.passenger__torso,
+.passenger__face {
+  fill: rgba(21, 12, 43, 0.88);
+}
+
+.passenger__eye {
+  fill: rgba(255, 240, 228, 0.85);
+}
+
+.passenger__lid {
+  fill: none;
+  stroke: rgba(255, 240, 228, 0.8);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.passenger__phone {
+  fill: var(--gold);
+  animation: lamp-pulse 3.2s ease-in-out infinite;
+}
+
+.passenger__head {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.passenger__head--gazing {
+  animation: gaze 5s ease-in-out infinite;
+}
+
+.passenger__head--down {
+  transform: rotate(17deg);
+}
+
+.passenger__head--fond {
+  animation: fond 4s ease-in-out infinite;
+}
+
+.passenger__head--tilted {
+  animation: doze 5.5s ease-in-out infinite;
+}
+
+.passenger__book,
+.passenger__photo {
+  fill: rgba(255, 240, 228, 0.82);
+  stroke: rgba(21, 12, 43, 0.5);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.passenger__spine {
+  stroke: rgba(21, 12, 43, 0.55);
+  stroke-width: 1.2;
+}
+
+.passenger__portrait {
+  fill: var(--rose);
+}
+
+.passenger__cup {
+  fill: rgba(255, 240, 228, 0.85);
+}
+
+.passenger__handle {
+  fill: none;
+  stroke: rgba(255, 240, 228, 0.85);
+  stroke-width: 1.4;
+}
+
+.passenger__wisp {
+  fill: none;
+  stroke: rgba(255, 240, 228, 0.6);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  animation: wisp 2.8s ease-in-out infinite;
+}
+
+@keyframes fond {
+  0%, 100% { transform: rotate(9deg); }
+  50% { transform: rotate(12deg); }
+}
+
+@keyframes wisp {
+  0%, 100% { opacity: 0.2; transform: translateY(0); }
+  50% { opacity: 0.75; transform: translateY(-2px); }
+}
+
+.passenger__dream {
+  fill: rgba(255, 125, 158, 0.9);
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: dream 3.4s ease-out infinite;
+}
+
+@keyframes gaze {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-4deg); }
+}
+
+@keyframes doze {
+  0%, 100% { transform: rotate(-23deg); }
+  50% { transform: rotate(-26deg); }
+}
+
+@keyframes dream {
+  0% { transform: translate(0, 0) scale(0.3); opacity: 0; }
+  30% { opacity: 0.9; }
+  100% { transform: translate(5px, -18px) scale(1); opacity: 0; }
+}
+
 /* ------------------------------------------------------------- the layout */
 
 .page {
@@ -852,6 +1376,65 @@ body {
   /* the scene becomes a still life: everything holds its place */
   .train__puff {
     opacity: 0.18;
+  }
+
+  .train--pulling .train__rig,
+  .train--departing .train__rig,
+  .train.train--braking .train__rig,
+  .train.train--braking .train__wheel,
+  .scenery svg,
+  .cast__move,
+  .cast__before,
+  .cast__after,
+  .cast__joy,
+  .joy__heart,
+  .figure--walk,
+  .figure--walk .figure__limb,
+  .figure--wait,
+  .figure__wave,
+  .figure__lean,
+  .station__bulb,
+  .passenger__pose,
+  .passenger__head--gazing,
+  .passenger__head--fond,
+  .passenger__head--tilted,
+  .passenger__dream,
+  .passenger__wisp {
+    animation: none;
+  }
+
+  /* no sequence to play, so show its ending: the two of them, together */
+  .cast--traveller .cast__move {
+    transform: translateX(150px);
+  }
+
+  .cast--greeter .cast__move {
+    transform: translateX(24px);
+  }
+
+  .cast__before {
+    opacity: 0;
+  }
+
+  .cast__after,
+  .cast__joy {
+    opacity: 1;
+  }
+
+  .joy__heart {
+    opacity: 0.45;
+  }
+
+  .figure__lean {
+    transform: rotate(12deg);
+  }
+
+  .passenger__pose {
+    opacity: 0;
+  }
+
+  .passenger__pose:first-child {
+    opacity: 1;
   }
 
   .streak {

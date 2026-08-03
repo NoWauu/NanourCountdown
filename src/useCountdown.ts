@@ -70,10 +70,20 @@ export function measure(target: Date, start: Date, now: Date = new Date()): Coun
  */
 export type Stage = 'travelling' | 'settling' | 'home';
 
+/**
+ * What the scene at the bottom of the page is doing:
+ * nothing yet, waiting at the platform, running, or pulled in at the far end.
+ */
+export type RidePhase = 'waiting' | 'boarding' | 'riding' | 'arrived';
+
+/** How early the train pulls into the platform. */
+export const BOARDING_LEAD = 5 * MINUTE;
+
 export interface Journey extends Countdown {
   stage: Stage;
-  /** True between the departure time and the arrival — the train is rolling. */
-  onboard: boolean;
+  ridePhase: RidePhase;
+  /** Seconds since the current ride phase began — animations are anchored to it. */
+  phaseElapsed: number;
   /** Share of the ride itself already done, 0 to 1. */
   rideProgress: number;
 }
@@ -85,23 +95,34 @@ export interface JourneyDates {
   movesInAt: Date;
 }
 
+function ridePhaseOf(dates: JourneyDates, now: Date): { ridePhase: RidePhase; phaseElapsed: number } {
+  const time = now.getTime();
+  const boardsAt = dates.departsAt.getTime() - BOARDING_LEAD;
+  const since = (from: number) => Math.max(0, (time - from) / SECOND);
+
+  if (time < boardsAt) return { ridePhase: 'waiting', phaseElapsed: 0 };
+  if (time < dates.departsAt.getTime()) return { ridePhase: 'boarding', phaseElapsed: since(boardsAt) };
+  if (time < dates.arrivesAt.getTime()) return { ridePhase: 'riding', phaseElapsed: since(dates.departsAt.getTime()) };
+  return { ridePhase: 'arrived', phaseElapsed: since(dates.arrivesAt.getTime()) };
+}
+
 export function measureJourney(dates: JourneyDates, now: Date = new Date()): Journey {
   const { waitStartedAt, departsAt, arrivesAt, movesInAt } = dates;
+  const ride = ridePhaseOf(dates, now);
 
   if (now.getTime() < arrivesAt.getTime()) {
-    const onboard = now.getTime() >= departsAt.getTime();
-    const ride = arrivesAt.getTime() - departsAt.getTime();
-    const rideProgress = onboard && ride > 0
-      ? Math.min(1, (now.getTime() - departsAt.getTime()) / ride)
+    const span = arrivesAt.getTime() - departsAt.getTime();
+    const rideProgress = ride.ridePhase === 'riding' && span > 0
+      ? Math.min(1, (now.getTime() - departsAt.getTime()) / span)
       : 0;
 
-    return { stage: 'travelling', onboard, rideProgress, ...measure(arrivesAt, waitStartedAt, now) };
+    return { stage: 'travelling', ...ride, rideProgress, ...measure(arrivesAt, waitStartedAt, now) };
   }
 
   const settling = measure(movesInAt, arrivesAt, now);
   return {
     stage: settling.phase === 'arrived' ? 'home' : 'settling',
-    onboard: false,
+    ...ride,
     rideProgress: 1,
     ...settling,
   };
