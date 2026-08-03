@@ -19,6 +19,8 @@ export function App() {
   const journey = useJourney(journeyDates);
   const home = journey.stage === 'home';
   const copy = COPY[journey.stage];
+  /** The scene runs from the moment the train pulls in until we live together. */
+  const riding = journey.ridePhase !== 'waiting' && !home;
 
   const format = useMemo(
     () =>
@@ -47,9 +49,17 @@ export function App() {
     <>
       <Analytics />
       <Sky />
-      {journey.onboard && <Train destination={config.toCity} rideProgress={journey.rideProgress} />}
+      {riding && (
+        <Train
+          origin={config.fromCity}
+          destination={config.toCity}
+          phase={journey.ridePhase}
+          phaseElapsed={journey.phaseElapsed}
+          rideProgress={journey.rideProgress}
+        />
+      )}
 
-      <main className={`page${home ? ' page--home' : ''}${journey.onboard ? ' page--riding' : ''}`}>
+      <main className={`page${home ? ' page--home' : ''}${riding ? ' page--riding' : ''}`}>
         <JourneyArc
           from={journey.stage === 'travelling' ? config.fromCity : config.toCity}
           to={journey.stage === 'travelling' ? config.toCity : config.homeLabel}
