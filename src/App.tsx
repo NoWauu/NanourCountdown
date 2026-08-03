@@ -47,7 +47,7 @@ export function App() {
     <>
       <Analytics />
       <Sky />
-      {journey.onboard && <Train />}
+      {journey.onboard && <Train destination={config.toCity} rideProgress={journey.rideProgress} />}
 
       <main className={`page${home ? ' page--home' : ''}${journey.onboard ? ' page--riding' : ''}`}>
         <JourneyArc

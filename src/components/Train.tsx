@@ -1,8 +1,8 @@
 /**
- * The ride itself. From the departure time until the arrival, a train rolls
- * across the bottom of the page: line art with warm lit windows, heart-shaped
- * steam and a garland strung along the roofs. It stays in the bottom band, so
- * the counter above it is never covered.
+ * The ride itself. From the departure time until the arrival, the bottom of
+ * the page becomes a moving window: the train holds its place while three
+ * layers of scenery rush past it at different speeds. It stays in the bottom
+ * band, so the counter above it is never covered.
  */
 
 const HEART =
@@ -28,26 +28,134 @@ function Heart({ x, y, size, className, style }: {
   );
 }
 
-/* The garland: one quadratic curve, hearts hanging off it at even steps. */
-const GARLAND = { start: { x: 42, y: 108 }, control: { x: 470, y: 26 }, end: { x: 892, y: 84 } };
+/* ------------------------------------------------------------ the scenery */
 
-function garlandPoint(t: number) {
-  const inv = 1 - t;
-  const { start, control, end } = GARLAND;
-  return {
-    x: inv * inv * start.x + 2 * inv * t * control.x + t * t * end.x,
-    y: inv * inv * start.y + 2 * inv * t * control.y + t * t * end.y,
-  };
+/**
+ * Every layer is one tile drawn twice, side by side, inside a strip twice as
+ * wide as the page. Sliding the strip by exactly half its width loops without
+ * a seam, and each layer runs at its own speed to give the ride some depth.
+ */
+function Layer({ className, tile, height }: {
+  className: string;
+  tile: React.ReactNode;
+  height: number;
+}) {
+  return (
+    <div className={`scenery ${className}`}>
+      <svg viewBox={`0 0 2000 ${height}`} preserveAspectRatio="none" fill="none">
+        <g>{tile}</g>
+        <g transform="translate(1000 0)">{tile}</g>
+      </svg>
+    </div>
+  );
 }
 
-interface CoachProps {
-  /** Left edge of the coach in SVG units. */
-  x: number;
+/** Far away: hills, and a town with its lights on. */
+function FarTile() {
+  const lights = [612, 636, 668, 700, 726, 760, 792];
+
+  return (
+    <>
+      <path
+        className="scenery__hill"
+        d="M0 300 C 90 232 150 250 220 214 C 300 172 360 206 430 236 C 500 266 560 246 640 220
+           C 720 194 790 226 860 250 C 920 270 960 284 1000 300 Z"
+      />
+      <path
+        className="scenery__hill scenery__hill--back"
+        d="M0 300 C 60 268 120 210 200 196 C 280 182 320 232 400 244 C 470 254 520 214 600 200
+           C 690 184 760 224 840 234 C 910 242 960 276 1000 300 Z"
+      />
+      {lights.map((x, i) => (
+        <circle
+          key={x}
+          className="scenery__lamp"
+          cx={x}
+          cy={228 + (i % 3) * 12}
+          r={3}
+          style={{ animationDelay: `${i * 0.9}s` }}
+        />
+      ))}
+    </>
+  );
 }
+
+/** Middle distance: pines, two lit houses, and the sign for the destination. */
+function MidTile({ destination }: { destination: string }) {
+  const pines = [40, 128, 208, 700, 786, 880, 962];
+
+  return (
+    <>
+      {pines.map((x, i) => {
+        const h = 116 + (i % 3) * 34;
+        return (
+          <path
+            key={x}
+            className="scenery__pine"
+            d={`M${x} 300 L${x + 26} ${300 - h} L${x + 52} 300 Z`}
+          />
+        );
+      })}
+
+      {/* two houses, windows lit */}
+      <g className="scenery__house">
+        <path className="scenery__roof" d="M300 232 L346 194 L392 232 Z" />
+        <rect className="scenery__wall" x={308} y={230} width={76} height={70} />
+        <rect className="scenery__pane" x={322} y={248} width={20} height={20} />
+        <rect className="scenery__pane" x={352} y={248} width={20} height={20} />
+        <rect className="scenery__pane" x={336} y={278} width={22} height={22} />
+      </g>
+      <g className="scenery__house">
+        <path className="scenery__roof" d="M424 250 L462 218 L500 250 Z" />
+        <rect className="scenery__wall" x={432} y={248} width={62} height={52} />
+        <rect className="scenery__pane" x={444} y={262} width={16} height={16} />
+        <rect className="scenery__pane" x={468} y={262} width={16} height={16} />
+      </g>
+
+      {/* the sign on the platform */}
+      <g className="scenery__sign">
+        <rect className="scenery__post" x={578} y={236} width={7} height={64} />
+        <rect className="scenery__post" x={634} y={236} width={7} height={64} />
+        <rect className="scenery__board" x={548} y={186} width={124} height={52} rx={8} />
+        <text className="scenery__label" x={610} y={219} textAnchor="middle">
+          {destination}
+        </text>
+      </g>
+    </>
+  );
+}
+
+/** Closest, in front of the train: telegraph poles, wires and grass. */
+function NearTile() {
+  return (
+    <>
+      <path className="scenery__wire" d="M0 96 Q 250 168 500 96 T 1000 96" />
+      <path className="scenery__wire" d="M0 118 Q 250 196 500 118 T 1000 118" />
+
+      {[0, 500].map((x) => (
+        <g key={x} className="scenery__pole">
+          <rect x={x - 8} y={72} width={16} height={228} />
+          <rect x={x - 44} y={84} width={88} height={11} rx={4} />
+          <rect x={x - 32} y={112} width={64} height={9} rx={4} />
+        </g>
+      ))}
+
+      {[80, 190, 320, 430, 560, 690, 820, 930].map((x, i) => (
+        <path
+          key={x}
+          className="scenery__grass"
+          d={`M${x} 300 Q ${x + 10} ${262 - (i % 3) * 14} ${x + 26} 300 Z`}
+        />
+      ))}
+    </>
+  );
+}
+
+/* -------------------------------------------------------------- the train */
 
 const COACH_WIDTH = 300;
 
-function Coach({ x }: CoachProps) {
+function Coach({ x }: { x: number }) {
   const windows = [0, 1, 2, 3].map((i) => x + 46 + i * 62);
 
   return (
@@ -84,14 +192,45 @@ function Coach({ x }: CoachProps) {
   );
 }
 
-export function Train() {
+/* The garland: one quadratic curve, hearts hanging off it at even steps. */
+const GARLAND = { start: { x: 42, y: 108 }, control: { x: 470, y: 26 }, end: { x: 892, y: 84 } };
+
+function garlandPoint(t: number) {
+  const inv = 1 - t;
+  const { start, control, end } = GARLAND;
+  return {
+    x: inv * inv * start.x + 2 * inv * t * control.x + t * t * end.x,
+    y: inv * inv * start.y + 2 * inv * t * control.y + t * t * end.y,
+  };
+}
+
+interface TrainProps {
+  /** City on the platform sign that flies past. */
+  destination: string;
+  /** Share of the ride already done, 0 to 1 — the train speeds up towards the end. */
+  rideProgress: number;
+}
+
+export function Train({ destination, rideProgress }: TrainProps) {
+  /**
+   * Every animation is timed off this multiplier, so the whole scene runs a
+   * little faster the closer the arrival gets. Quantised, otherwise the
+   * per-second re-render would keep nudging animation durations mid-cycle.
+   */
+  const pace = Math.round((1.2 - 0.55 * rideProgress) * 20) / 20;
+
   const drivers = [812, 912, 1012];
   const garland = Array.from({ length: 11 }, (_, i) => garlandPoint(i / 10));
   const garlandPath = `M ${GARLAND.start.x} ${GARLAND.start.y} Q ${GARLAND.control.x} ${GARLAND.control.y} ${GARLAND.end.x} ${GARLAND.end.y}`;
 
   return (
-    <div className="train" aria-hidden="true">
+    <div className="train" aria-hidden="true" style={{ ['--pace' as string]: pace }}>
+      <Layer className="scenery--far" height={300} tile={<FarTile />} />
+      <Layer className="scenery--mid" height={300} tile={<MidTile destination={destination} />} />
+
+      <div className="train__haze" />
       <div className="train__track" />
+      <div className="train__rush" />
 
       <div className="train__rig">
         <svg className="train__svg" viewBox="0 0 1400 320" fill="none">
@@ -203,34 +342,51 @@ export function Train() {
             ))}
           </g>
 
-          {/* steam: hearts, drifting back over the coaches */}
+          {/* steam: hearts, streaming back over the coaches */}
           <g className="train__steam">
-            {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
               <Heart
                 key={i}
                 className="train__puff"
                 x={1136}
                 y={70}
-                size={26 + (i % 3) * 14}
-                style={{ animationDelay: `${i * 0.44}s` }}
+                size={24 + (i % 4) * 12}
+                style={{ animationDelay: `${i * 0.34}s` }}
               />
             ))}
           </g>
 
           {/* sparks trailing off the last wheels */}
           <g className="train__sparks">
-            {[0, 1, 2, 3, 4].map((i) => (
+            {[0, 1, 2, 3, 4, 5].map((i) => (
               <circle
                 key={i}
                 className="train__spark"
-                cx={40}
+                cx={64}
                 cy={252}
                 r={3 + (i % 3)}
-                style={{ animationDelay: `${i * 0.6}s` }}
+                style={{ animationDelay: `${i * 0.42}s` }}
               />
             ))}
           </g>
         </svg>
+      </div>
+
+      <Layer className="scenery--near" height={300} tile={<NearTile />} />
+
+      <div className="train__streaks">
+        {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+          <span
+            key={i}
+            className="streak"
+            style={{
+              bottom: `${8 + i * 11}%`,
+              width: `${14 + (i % 4) * 9}%`,
+              animationDelay: `${i * 0.31}s`,
+              animationDuration: `calc(var(--pace, 1) * ${1.1 + (i % 3) * 0.45}s)`,
+            }}
+          />
+        ))}
       </div>
     </div>
   );
