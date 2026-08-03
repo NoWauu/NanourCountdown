@@ -10,6 +10,8 @@
   --body: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --gutter: clamp(1.25rem, 5vw, 4rem);
+  /* height of the moving scene at the bottom of the page while the train runs */
+  --band-h: clamp(13rem, 40vh, 28rem);
 }
 
 *,
@@ -133,19 +135,148 @@ body {
 /* ------------------------------------------------------------- the train */
 
 .train {
-  --train-w: clamp(38rem, 104vw, 92rem);
-  --train-bottom: clamp(1.25rem, 5vh, 3.5rem);
+  --train-w: clamp(34rem, 90vw, 82rem);
+  --train-bottom: clamp(1rem, 4vh, 3rem);
   /* wheel bottoms sit at 274/320 of the viewBox, so the rail follows the width */
   --rail-y: calc(var(--train-bottom) + 0.0329 * var(--train-w));
 
   position: fixed;
   inset: auto 0 0 0;
-  height: clamp(13rem, 42vh, 27rem);
+  height: var(--band-h);
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
   animation: train-in 1.8s ease-out both;
 }
+
+/* --- three layers of scenery, each running at its own speed --- */
+
+.scenery {
+  position: absolute;
+  left: 0;
+  bottom: var(--rail-y);
+  width: 200%;
+  animation-name: scenery-run;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.scenery svg {
+  display: block;
+  width: 100%;
+}
+
+.scenery--far {
+  animation-duration: calc(var(--pace, 1) * 46s);
+  opacity: 0.5;
+}
+
+.scenery--far svg {
+  height: clamp(6rem, 18vh, 12rem);
+}
+
+.scenery--mid {
+  animation-duration: calc(var(--pace, 1) * 15s);
+  opacity: 0.72;
+}
+
+.scenery--mid svg {
+  height: clamp(7rem, 22vh, 15rem);
+}
+
+.scenery--near {
+  animation-duration: calc(var(--pace, 1) * 5s);
+  bottom: calc(var(--rail-y) - 0.6rem);
+  /* just enough blur to read as speed rather than as a still drawing */
+  filter: blur(0.7px);
+}
+
+.scenery--near svg {
+  height: clamp(9rem, 30vh, 20rem);
+}
+
+@keyframes scenery-run {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.scenery__hill {
+  fill: rgba(107, 47, 85, 0.55);
+}
+
+.scenery__hill--back {
+  fill: rgba(59, 30, 82, 0.6);
+}
+
+.scenery__lamp {
+  fill: var(--gold);
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+.scenery__pine {
+  fill: rgba(35, 18, 58, 0.85);
+  stroke: rgba(255, 178, 122, 0.18);
+  stroke-width: 2;
+}
+
+.scenery__wall {
+  fill: rgba(35, 18, 58, 0.9);
+  stroke: rgba(255, 178, 122, 0.25);
+  stroke-width: 2;
+}
+
+.scenery__roof {
+  fill: rgba(107, 47, 85, 0.9);
+  stroke: rgba(255, 178, 122, 0.3);
+  stroke-width: 2;
+}
+
+.scenery__pane {
+  fill: rgba(243, 206, 115, 0.75);
+  animation: window-warm 4.5s ease-in-out infinite;
+}
+
+.scenery__post {
+  fill: rgba(35, 18, 58, 0.95);
+}
+
+.scenery__board {
+  fill: rgba(21, 12, 43, 0.9);
+  stroke: var(--rose);
+  stroke-width: 3;
+}
+
+.scenery__label {
+  fill: var(--cream);
+  font-family: var(--body);
+  font-size: 26px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.scenery__pole rect {
+  fill: rgba(21, 12, 43, 0.92);
+  stroke: rgba(255, 178, 122, 0.2);
+  stroke-width: 2;
+}
+
+.scenery__wire {
+  stroke: rgba(255, 240, 228, 0.22);
+  stroke-width: 2.5;
+}
+
+.scenery__grass {
+  fill: rgba(21, 12, 43, 0.9);
+}
+
+/* haze between the far country and the train, for air in the distance */
+.train__haze {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(107, 47, 85, 0) 30%, rgba(107, 47, 85, 0.35) 78%, rgba(255, 178, 122, 0.16) 100%);
+}
+
+/* --- the rails, and the ground blurring past under them --- */
 
 .train__track {
   position: absolute;
@@ -153,22 +284,63 @@ body {
   right: -4vw;
   bottom: var(--rail-y);
   height: 10px;
-  border-top: 2px solid rgba(255, 240, 228, 0.28);
-  border-bottom: 2px solid rgba(255, 240, 228, 0.12);
-  background-image: repeating-linear-gradient(
-    90deg,
-    rgba(255, 178, 122, 0.22) 0 14px,
-    transparent 14px 46px
-  );
+  border-top: 2px solid rgba(255, 240, 228, 0.32);
+  border-bottom: 2px solid rgba(255, 240, 228, 0.14);
   box-shadow: 0 0 26px rgba(255, 125, 158, 0.18);
 }
 
+.train__rush {
+  position: absolute;
+  left: -4vw;
+  right: -4vw;
+  bottom: calc(var(--rail-y) - 1.1rem);
+  height: 1.1rem;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255, 178, 122, 0.3) 0 16px,
+    transparent 16px 58px
+  );
+  animation: rush calc(var(--pace, 1) * 0.5s) linear infinite;
+}
+
+@keyframes rush {
+  from { background-position-x: 0; }
+  to { background-position-x: -58px; }
+}
+
+/* --- speed lines flying past the front of the frame --- */
+
+.train__streaks {
+  position: absolute;
+  inset: 0;
+}
+
+.streak {
+  position: absolute;
+  right: -25%;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 240, 228, 0.55), transparent);
+  animation-name: streak-fly;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes streak-fly {
+  from { transform: translateX(0); opacity: 0; }
+  15% { opacity: 0.7; }
+  85% { opacity: 0.7; }
+  to { transform: translateX(-165vw); opacity: 0; }
+}
+
+/* --- the train, holding its place in the middle of the frame --- */
+
 .train__rig {
   position: absolute;
-  left: 0;
+  left: 50%;
+  margin-left: calc(var(--train-w) / -2);
   bottom: var(--train-bottom);
   width: var(--train-w);
-  animation: train-run 26s linear infinite;
 }
 
 .train__svg {
@@ -176,18 +348,13 @@ body {
   width: 100%;
   height: auto;
   filter: drop-shadow(0 6px 40px rgba(255, 125, 158, 0.45));
-  animation: train-sway 2.6s ease-in-out infinite;
+  animation: train-sway calc(var(--pace, 1) * 0.9s) ease-in-out infinite;
 }
 
 /* the light the train carries with it */
 .train__halo {
   fill: url(#haloGlow);
   animation: halo-breathe 4s ease-in-out infinite;
-}
-
-@keyframes train-run {
-  from { transform: translateX(-108%); }
-  to { transform: translateX(calc(100vw + 8%)); }
 }
 
 @keyframes train-in {
@@ -288,7 +455,7 @@ body {
   transform-box: fill-box;
   transform-origin: center;
   opacity: 0;
-  animation: spark 2.2s ease-out infinite;
+  animation: spark calc(var(--pace, 1) * 1.3s) ease-out infinite;
 }
 
 .train__tyre {
@@ -309,18 +476,18 @@ body {
 .train__wheel {
   transform-box: fill-box;
   transform-origin: center;
-  animation: wheel-spin 1s linear infinite;
+  animation: wheel-spin calc(var(--pace, 1) * 0.55s) linear infinite;
 }
 
 .train__wheel--driver {
-  animation-duration: 1.7s;
+  animation-duration: calc(var(--pace, 1) * 0.9s);
 }
 
 .train__rod {
   stroke: rgba(255, 240, 228, 0.55);
   stroke-width: 5;
   stroke-linecap: round;
-  animation: rod-throw 1.7s linear infinite;
+  animation: rod-throw calc(var(--pace, 1) * 0.9s) linear infinite;
 }
 
 .train__puff {
@@ -328,16 +495,18 @@ body {
   transform-box: fill-box;
   transform-origin: center;
   opacity: 0;
-  animation: puff 3.6s ease-out infinite;
+  animation: puff calc(var(--pace, 1) * 2.4s) ease-out infinite;
 }
 
 @keyframes wheel-spin {
   to { transform: rotate(360deg); }
 }
 
+/* the rattle of a train at speed, not a boat on a swell */
 @keyframes train-sway {
   0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-0.6%) rotate(-0.18deg); }
+  25% { transform: translateY(-0.35%) rotate(-0.12deg); }
+  75% { transform: translateY(0.3%) rotate(0.1deg); }
 }
 
 @keyframes halo-breathe {
@@ -384,8 +553,8 @@ body {
 /* distances are in the heart's own units, so they scale with each puff */
 @keyframes puff {
   0% { transform: translate(0, 0) scale(0.2) rotate(-14deg); opacity: 0; }
-  18% { opacity: 0.5; }
-  100% { transform: translate(-140px, -50px) scale(1.8) rotate(12deg); opacity: 0; }
+  18% { opacity: 0.55; }
+  100% { transform: translate(-260px, -70px) scale(2.1) rotate(14deg); opacity: 0; }
 }
 
 /* ------------------------------------------------------------- the layout */
@@ -607,13 +776,17 @@ body {
 
 /* ------------------------------------------------- the page while riding */
 
-/* The train runs behind the bottom of the page, so the two things that live
-   down there get a little glass under them instead of fighting the line art. */
+/* The scene owns the bottom band of the viewport, so the page stacks itself
+   above it instead of printing over the train. */
+.page--riding {
+  padding-bottom: calc(var(--band-h) + clamp(0.5rem, 2vh, 1.5rem));
+}
+
 .page--riding .steps {
   padding: clamp(0.6rem, 2vh, 1rem) clamp(0.9rem, 3vw, 1.6rem);
   border-radius: 1.25rem;
-  background: rgba(21, 12, 43, 0.42);
-  backdrop-filter: blur(8px);
+  background: rgba(21, 12, 43, 0.28);
+  backdrop-filter: blur(6px);
   justify-self: center;
 }
 
@@ -658,7 +831,12 @@ body {
   .train,
   .train__rig,
   .train__svg,
+  .train__rush,
   .train__halo,
+  .scenery,
+  .scenery__lamp,
+  .scenery__pane,
+  .streak,
   .train__window,
   .train__lampGlow,
   .train__beam,
@@ -671,14 +849,17 @@ body {
     animation: none;
   }
 
-  /* no run, so park the train in view instead of off the left edge */
-  .train__rig {
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
+  /* the scene becomes a still life: everything holds its place */
   .train__puff {
     opacity: 0.18;
+  }
+
+  .streak {
+    opacity: 0;
+  }
+
+  .scenery--near {
+    filter: none;
   }
 
   .star {
@@ -708,12 +889,16 @@ body {
   }
 
   .train {
-    --train-w: 170vw;
-    height: clamp(9rem, 30vh, 16rem);
-    opacity: 0.9;
+    --train-w: 150vw;
+    --band-h: clamp(11rem, 34vh, 18rem);
   }
 
+  /* too narrow for the whole rake, so frame the locomotive instead */
   .train__rig {
-    animation-duration: 20s;
+    margin-left: calc(var(--train-w) * -0.72);
+  }
+
+  .page--riding {
+    --band-h: clamp(11rem, 34vh, 18rem);
   }
 }
