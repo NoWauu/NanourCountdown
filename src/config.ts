@@ -9,6 +9,8 @@
 const env = import.meta.env;
 
 export interface CountdownConfig {
+  /** Moment the train leaves — the page starts rolling from here. */
+  departsAt: string;
   /** Moment I land in her city, ISO 8601 with an explicit UTC offset. */
   arrivesAt: string;
   /** Moment we actually move in together — a couple of days later. */
@@ -41,6 +43,7 @@ export interface CountdownConfig {
 }
 
 export const config: CountdownConfig = {
+  departsAt: env.VITE_DEPARTS_AT ?? '2026-08-11T07:35:00+02:00',
   arrivesAt: env.VITE_ARRIVES_AT ?? '2026-08-11T11:46:00+02:00',
   movesInAt: env.VITE_MOVES_IN_AT ?? '2026-08-13T10:00:00+02:00',
   waitStartedAt: env.VITE_WAIT_STARTED_AT ?? '2026-07-24T21:20:40+02:00',
@@ -58,9 +61,10 @@ export const config: CountdownConfig = {
   timeZone: env.VITE_TIME_ZONE ?? 'Europe/Paris',
 };
 
+export const departsAt = new Date(config.departsAt);
 export const arrivesAt = new Date(config.arrivesAt);
 export const movesInAt = new Date(config.movesInAt);
 export const waitStartedAt = new Date(config.waitStartedAt);
 
 /** One stable object so the countdown hook does not restart every render. */
-export const journeyDates = { waitStartedAt, arrivesAt, movesInAt };
+export const journeyDates = { waitStartedAt, departsAt, arrivesAt, movesInAt };

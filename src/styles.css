@@ -130,6 +130,172 @@ body {
   100% { transform: translate(var(--drift, 0), -118vh) rotate(10deg); opacity: 0; }
 }
 
+/* ------------------------------------------------------------- the train */
+
+.train {
+  --train-w: clamp(34rem, 92vw, 78rem);
+  --train-bottom: clamp(1.25rem, 5vh, 3.5rem);
+  /* wheel bottoms sit at 274/300 of the viewBox, so the rail follows the width */
+  --rail-y: calc(var(--train-bottom) + 0.0186 * var(--train-w));
+
+  position: fixed;
+  inset: auto 0 0 0;
+  height: clamp(11rem, 34vh, 22rem);
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  animation: train-in 1.6s ease-out both;
+}
+
+.train__track {
+  position: absolute;
+  left: -4vw;
+  right: -4vw;
+  bottom: var(--rail-y);
+  height: 10px;
+  border-top: 2px solid rgba(255, 240, 228, 0.22);
+  border-bottom: 2px solid rgba(255, 240, 228, 0.1);
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255, 178, 122, 0.18) 0 14px,
+    transparent 14px 46px
+  );
+}
+
+.train__rig {
+  position: absolute;
+  left: 0;
+  bottom: var(--train-bottom);
+  width: var(--train-w);
+  animation: train-run 24s linear infinite;
+}
+
+.train__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 0 30px rgba(255, 125, 158, 0.28));
+}
+
+@keyframes train-run {
+  from { transform: translateX(-108%); }
+  to { transform: translateX(calc(100vw + 8%)); }
+}
+
+@keyframes train-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* --- the stock itself, drawn as line art so the counter stays readable --- */
+
+.train__body {
+  fill: rgba(59, 30, 82, 0.5);
+  stroke: rgba(255, 240, 228, 0.6);
+  stroke-width: 3;
+}
+
+.train__roof {
+  fill: rgba(255, 125, 158, 0.28);
+  stroke: rgba(255, 240, 228, 0.45);
+  stroke-width: 2.5;
+}
+
+.train__window {
+  fill: rgba(243, 206, 115, 0.4);
+  stroke: rgba(255, 240, 228, 0.35);
+  stroke-width: 2;
+}
+
+.train__skirt {
+  fill: rgba(21, 12, 43, 0.55);
+  stroke: rgba(255, 178, 122, 0.4);
+  stroke-width: 2;
+}
+
+.train__band {
+  fill: rgba(255, 178, 122, 0.35);
+}
+
+.train__smokebox {
+  fill: rgba(21, 12, 43, 0.6);
+  stroke: rgba(255, 240, 228, 0.55);
+  stroke-width: 3;
+}
+
+.train__coupling {
+  stroke: rgba(255, 240, 228, 0.4);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.train__lamp {
+  fill: var(--gold);
+}
+
+.train__beam {
+  fill: rgba(243, 206, 115, 0.12);
+  filter: blur(8px);
+}
+
+.train__tyre {
+  fill: rgba(21, 12, 43, 0.6);
+  stroke: rgba(255, 178, 122, 0.75);
+  stroke-width: 3;
+}
+
+.train__hub {
+  fill: rgba(255, 178, 122, 0.8);
+}
+
+.train__spoke {
+  stroke: rgba(255, 178, 122, 0.45);
+  stroke-width: 2;
+}
+
+.train__wheel {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wheel-spin 1s linear infinite;
+}
+
+.train__wheel--driver {
+  animation-duration: 1.7s;
+}
+
+.train__rod {
+  stroke: rgba(255, 240, 228, 0.55);
+  stroke-width: 5;
+  stroke-linecap: round;
+  animation: rod-throw 1.7s linear infinite;
+}
+
+.train__puff {
+  fill: rgba(255, 240, 228, 0.5);
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: puff 3s ease-out infinite;
+}
+
+@keyframes wheel-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rod-throw {
+  0% { transform: translate(8px, 0); }
+  25% { transform: translate(0, -8px); }
+  50% { transform: translate(-8px, 0); }
+  75% { transform: translate(0, 8px); }
+  100% { transform: translate(8px, 0); }
+}
+
+@keyframes puff {
+  0% { transform: translate(0, 0) scale(0.25); opacity: 0; }
+  18% { opacity: 0.4; }
+  100% { transform: translate(-260px, -60px) scale(1.7); opacity: 0; }
+}
+
 /* ------------------------------------------------------------- the layout */
 
 .page {
@@ -347,6 +513,22 @@ body {
   opacity: 1;
 }
 
+/* ------------------------------------------------- the page while riding */
+
+/* The train runs behind the bottom of the page, so the two things that live
+   down there get a little glass under them instead of fighting the line art. */
+.page--riding .steps {
+  padding: clamp(0.6rem, 2vh, 1rem) clamp(0.9rem, 3vw, 1.6rem);
+  border-radius: 1.25rem;
+  background: rgba(21, 12, 43, 0.42);
+  backdrop-filter: blur(8px);
+  justify-self: center;
+}
+
+.page--riding .note {
+  text-shadow: 0 2px 18px rgba(21, 12, 43, 0.75);
+}
+
 /* --------------------------------------------------------- arrival state */
 
 .page--home .counter__value {
@@ -380,8 +562,23 @@ body {
   .heart,
   .sky__glow,
   .page--home .counter__value,
-  .page--home .journey__light {
+  .page--home .journey__light,
+  .train,
+  .train__rig,
+  .train__wheel,
+  .train__rod,
+  .train__puff {
     animation: none;
+  }
+
+  /* no run, so park the train in view instead of off the left edge */
+  .train__rig {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .train__puff {
+    opacity: 0.18;
   }
 
   .star {
@@ -408,5 +605,15 @@ body {
 
   .journey__arc {
     width: 100%;
+  }
+
+  .train {
+    --train-w: 150vw;
+    height: clamp(8rem, 26vh, 14rem);
+    opacity: 0.85;
+  }
+
+  .train__rig {
+    animation-duration: 18s;
   }
 }

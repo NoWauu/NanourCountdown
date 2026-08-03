@@ -72,23 +72,39 @@ export type Stage = 'travelling' | 'settling' | 'home';
 
 export interface Journey extends Countdown {
   stage: Stage;
+  /** True between the departure time and the arrival — the train is rolling. */
+  onboard: boolean;
+  /** Share of the ride itself already done, 0 to 1. */
+  rideProgress: number;
 }
 
 export interface JourneyDates {
   waitStartedAt: Date;
+  departsAt: Date;
   arrivesAt: Date;
   movesInAt: Date;
 }
 
 export function measureJourney(dates: JourneyDates, now: Date = new Date()): Journey {
-  const { waitStartedAt, arrivesAt, movesInAt } = dates;
+  const { waitStartedAt, departsAt, arrivesAt, movesInAt } = dates;
 
   if (now.getTime() < arrivesAt.getTime()) {
-    return { stage: 'travelling', ...measure(arrivesAt, waitStartedAt, now) };
+    const onboard = now.getTime() >= departsAt.getTime();
+    const ride = arrivesAt.getTime() - departsAt.getTime();
+    const rideProgress = onboard && ride > 0
+      ? Math.min(1, (now.getTime() - departsAt.getTime()) / ride)
+      : 0;
+
+    return { stage: 'travelling', onboard, rideProgress, ...measure(arrivesAt, waitStartedAt, now) };
   }
 
   const settling = measure(movesInAt, arrivesAt, now);
-  return { stage: settling.phase === 'arrived' ? 'home' : 'settling', ...settling };
+  return {
+    stage: settling.phase === 'arrived' ? 'home' : 'settling',
+    onboard: false,
+    rideProgress: 1,
+    ...settling,
+  };
 }
 
 export function useJourney(dates: JourneyDates): Journey {
