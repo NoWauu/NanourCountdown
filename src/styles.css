@@ -824,10 +824,12 @@ body {
   stroke-width: 2.5;
 }
 
+/* darker than the sky behind her, warmer than the silhouette in front of it,
+   so the hair reads as hair rather than as a gap with an outline round it */
 .figure__hair {
-  fill: rgba(107, 47, 85, 0.95);
-  stroke: rgba(255, 240, 228, 0.5);
-  stroke-width: 2;
+  fill: #6e2a45;
+  stroke: rgba(255, 240, 228, 0.4);
+  stroke-width: 1.8;
   stroke-linejoin: round;
 }
 

@@ -53,10 +53,18 @@ export function Walking({ suitcase = false }: { suitcase?: boolean }) {
 
 /* ------------------------------------------------------- her, on the platform */
 
+/**
+ * Her hair, as one shape behind the head and the body: a crown a little wider
+ * than the skull, and two lengths falling past the shoulders. The inner edge
+ * sits below the neckline on purpose — the torso is drawn over it, so the hair
+ * frames her instead of lying on top of her like a hood.
+ */
+const HAIR = 'M-12.5 -63 Q-13.5 -84 0 -84 Q13.5 -84 12.5 -63 Q13.5 -52 12.5 -37 Q11 -33.5 9 -36 Q6.5 -44 6 -52 L-6 -52 Q-6.5 -44 -9 -36 Q-11 -33.5 -12.5 -37 Q-13.5 -52 -12.5 -63 Z';
+
 export function Waiting() {
   return (
     <g className="figure figure--wait">
-      <path className="figure__hair" d="M-11 -66 Q -12 -80 0 -80 Q 12 -80 11 -66 L13 -44 L7 -44 L8 -64 L-8 -64 L-7 -44 L-13 -44 Z" />
+      <path className="figure__hair" d={HAIR} />
       <circle className="figure__head" cx={0} cy={-66} r={9} />
       <path className="figure__torso" d="M-7 -57 L7 -57 L11 -26 L-11 -26 Z" />
 
@@ -84,10 +92,9 @@ export function Hugging({ hair = false }: { hair?: boolean }) {
       <line className="figure__limb figure__limb--near figure__limb--leg" x1={1} y1={-27} x2={5} y2={0} />
 
       <g className="figure__lean">
+        {/* hair first: the body and the head both sit in front of it */}
+        {hair && <path className="figure__hair" d={HAIR} />}
         <path className="figure__torso" d={hair ? 'M-7 -57 L7 -57 L10 -26 L-10 -26 Z' : 'M-7 -57 L7 -57 L5.5 -26 L-5.5 -26 Z'} />
-        {hair && (
-          <path className="figure__hair" d="M-11 -66 Q -12 -80 0 -80 Q 12 -80 11 -66 L12 -46 L6 -46 L8 -64 L-8 -64 L-6 -46 L-12 -46 Z" />
-        )}
         <circle className="figure__head" cx={0} cy={-66} r={9} />
 
         {/* both arms round the other one's back */}
