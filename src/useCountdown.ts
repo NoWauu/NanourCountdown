@@ -79,6 +79,9 @@ export type RidePhase = 'waiting' | 'boarding' | 'riding' | 'arrived';
 /** How early the train pulls into the platform, unless the config says otherwise. */
 export const BOARDING_LEAD = 5 * MINUTE;
 
+/** The counter reading that starts the packing scene, unless the config says otherwise. */
+export const PACKING_FROM_DAY = 2;
+
 export interface Journey extends Countdown {
   stage: Stage;
   ridePhase: RidePhase;
@@ -86,6 +89,8 @@ export interface Journey extends Countdown {
   phaseElapsed: number;
   /** Share of the ride itself already done, 0 to 1. */
   rideProgress: number;
+  /** The last couple of evenings before the train: he is at home, packing. */
+  packing: boolean;
 }
 
 export interface JourneyDates {
@@ -95,6 +100,8 @@ export interface JourneyDates {
   movesInAt: Date;
   /** Milliseconds the train stands at the platform before it leaves. */
   boardingLead?: number;
+  /** Counter reading the packing scene comes in on, e.g. 2 for J-2. */
+  packingFromDay?: number;
 }
 
 function ridePhaseOf(dates: JourneyDates, now: Date): { ridePhase: RidePhase; phaseElapsed: number } {
@@ -118,7 +125,15 @@ export function measureJourney(dates: JourneyDates, now: Date = new Date()): Jou
       ? Math.min(1, (now.getTime() - departsAt.getTime()) / span)
       : 0;
 
-    return { stage: 'travelling', ...ride, rideProgress, ...measure(arrivesAt, waitStartedAt, now) };
+    const travelling = measure(arrivesAt, waitStartedAt, now);
+    /**
+     * From the evening the counter first reads J-2 until the train pulls in.
+     * Anything shorter than a day is past J-1, so it counts too.
+     */
+    const packing = ride.ridePhase === 'waiting'
+      && (travelling.phase !== 'days' || travelling.days <= (dates.packingFromDay ?? PACKING_FROM_DAY));
+
+    return { stage: 'travelling', ...ride, rideProgress, packing, ...travelling };
   }
 
   const settling = measure(movesInAt, arrivesAt, now);
@@ -126,6 +141,7 @@ export function measureJourney(dates: JourneyDates, now: Date = new Date()): Jou
     stage: settling.phase === 'arrived' ? 'home' : 'settling',
     ...ride,
     rideProgress: 1,
+    packing: false,
     ...settling,
   };
 }

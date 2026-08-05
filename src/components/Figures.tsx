@@ -51,6 +51,31 @@ export function Walking({ suitcase = false }: { suitcase?: boolean }) {
   );
 }
 
+/* --------------------------------------------------- him, the night before */
+
+/**
+ * The same build as the walking figure, stood still with his sleeves up: the
+ * legs are planted, everything else hangs off a torso that leans over the bed
+ * and straightens again. Only the arms have a job to do, so only the arms and
+ * the lean are animated — the scene around him supplies the shirt.
+ */
+export function Folding() {
+  return (
+    <g className="figure figure--fold">
+      <line className="figure__limb figure__limb--far" x1={-3} y1={-27} x2={-5} y2={0} />
+      <line className="figure__limb figure__limb--near figure__limb--leg" x1={3} y1={-27} x2={5} y2={0} />
+
+      <g className="figure__stoop">
+        <path className="figure__torso" d="M-7 -57 L7 -57 L5.5 -27 L-5.5 -27 Z" />
+        <circle className="figure__head" cx={0} cy={-66} r={9} />
+
+        <line className="figure__limb figure__arm figure__arm--far" x1={0} y1={-52} x2={0} y2={-31} />
+        <line className="figure__limb figure__arm figure__arm--near" x1={0} y1={-52} x2={0} y2={-31} />
+      </g>
+    </g>
+  );
+}
+
 /* ------------------------------------------------------- her, on the platform */
 
 /**

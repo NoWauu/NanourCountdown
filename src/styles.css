@@ -11,7 +11,7 @@
 
   --gutter: clamp(1.25rem, 5vw, 4rem);
   /* height of the moving scene at the bottom of the page while the train runs */
-  --band-h: clamp(13rem, 40vh, 28rem);
+  --band-h: clamp(9rem, 34vh, 24rem);
 }
 
 *,
@@ -23,16 +23,18 @@
 html,
 body {
   margin: 0;
-  min-height: 100%;
+  height: 100%;
 }
 
+/* The page is exactly one screen and never more than one — see `.page`, which
+   is built so the counter gives up whatever room the rest of it needs. */
 body {
   background: var(--night);
   color: var(--cream);
   font-family: var(--body);
   font-weight: 300;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 /* ---------------------------------------------------------------- the sky */
@@ -132,13 +134,16 @@ body {
   100% { transform: translate(var(--drift, 0), -118vh) rotate(10deg); opacity: 0; }
 }
 
-/* ------------------------------------------------------------- the train */
+/* ------------------------------------------------------ scenes, in general */
 
-.train {
-  --train-w: clamp(34rem, 90vw, 82rem);
-  --train-bottom: clamp(1rem, 4vh, 3rem);
-  /* wheel bottoms sit at 274/320 of the viewBox, so the rail follows the width */
-  --rail-y: calc(var(--train-bottom) + 0.0329 * var(--train-w));
+/**
+ * There are two of them — the ride, and the room he packs in — and only ever
+ * one at a time. A scene owns the band along the bottom of the viewport and
+ * hangs its drawings off the bottom edge, so all either of them has to say is
+ * how wide its drawing is and how far off the floor it sits.
+ */
+.band {
+  --stage-bottom: 0px;
 
   position: fixed;
   inset: auto 0 0 0;
@@ -146,7 +151,35 @@ body {
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  animation: train-in 1.8s ease-out both;
+  animation: scene-in 1.8s ease-out both;
+}
+
+.stage {
+  position: absolute;
+  left: 50%;
+  margin-left: calc(var(--stage-w) / -2);
+  bottom: var(--stage-bottom);
+  width: var(--stage-w);
+}
+
+.stage svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@keyframes scene-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ------------------------------------------------------------- the train */
+
+.train {
+  --stage-w: clamp(34rem, 90vw, 82rem);
+  --stage-bottom: clamp(1rem, 4vh, 3rem);
+  /* wheel bottoms sit at 274/320 of the viewBox, so the rail follows the width */
+  --rail-y: calc(var(--stage-bottom) + 0.0329 * var(--stage-w));
 }
 
 /* --- three layers of scenery, each running at its own speed --- */
@@ -336,14 +369,6 @@ body {
 
 /* --- the train, holding its place in the middle of the frame --- */
 
-.train__rig {
-  position: absolute;
-  left: 50%;
-  margin-left: calc(var(--train-w) / -2);
-  bottom: var(--train-bottom);
-  width: var(--train-w);
-}
-
 .train__svg {
   display: block;
   width: 100%;
@@ -356,11 +381,6 @@ body {
 .train__halo {
   fill: url(#haloGlow);
   animation: halo-breathe 4s ease-in-out infinite;
-}
-
-@keyframes train-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 /* --- the stock itself, drawn as line art so the counter stays readable --- */
@@ -735,26 +755,12 @@ body {
 
 /* Same frame as the train, but never moves with it: the platform and the
    people on it stay where they are while the train slides in and out. */
-.train__stage {
-  position: absolute;
-  left: 50%;
-  margin-left: calc(var(--train-w) / -2);
-  bottom: var(--train-bottom);
-  width: var(--train-w);
+.train__fixed--back {
+  animation: scene-in 1.4s ease-out both;
 }
 
-.train__stage svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.train__stage--back {
-  animation: train-in 1.4s ease-out both;
-}
-
-.train__stage--front {
-  animation: train-in 0.8s ease-out both;
+.train__fixed--front {
+  animation: scene-in 0.8s ease-out both;
 }
 
 .train__platform {
@@ -1001,7 +1007,7 @@ body {
 /* ------------------------------------------------- him, through the window */
 
 .train__passenger {
-  animation: train-in 1.2s ease-out both;
+  animation: scene-in 1.2s ease-out both;
 }
 
 /* six poses share one loop; each takes the window for a sixth of it */
@@ -1129,16 +1135,451 @@ body {
   100% { transform: translate(5px, -18px) scale(1); opacity: 0; }
 }
 
+/* ------------------------------------------- the night before, at his place */
+
+.house {
+  --stage-w: clamp(34rem, 96vw, 88rem);
+  /* one shirt, start to finish; the case runs on three of them */
+  --pack-cycle: 13s;
+
+  /**
+   * The room is taller than its band on a wide screen and shorter on a narrow
+   * one, so there is no drawing-side fade that lands on the band's top edge in
+   * both cases. Fading the band itself always does: whatever the wall happens
+   * to be doing up there, it dissolves into the sky instead of being cut off.
+   */
+  mask-image: linear-gradient(180deg, transparent 0%, #000 14%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 14%);
+}
+
+/* --- the room --- */
+
+.room__wall {
+  fill: url(#houseWall);
+}
+
+.room__floor {
+  fill: rgba(14, 7, 34, 0.95);
+}
+
+.room__skirting {
+  fill: rgba(107, 47, 85, 0.55);
+  stroke: rgba(255, 178, 122, 0.22);
+  stroke-width: 2;
+}
+
+.room__rug {
+  fill: rgba(107, 47, 85, 0.4);
+}
+
+.room__sky {
+  fill: url(#houseNight);
+}
+
+.room__frame {
+  fill: none;
+  stroke: url(#houseEdge);
+  stroke-width: 4;
+}
+
+.room__mullion {
+  stroke: rgba(255, 240, 228, 0.45);
+  stroke-width: 3;
+}
+
+.room__sill {
+  fill: rgba(21, 12, 43, 0.9);
+  stroke: rgba(255, 178, 122, 0.35);
+  stroke-width: 2;
+}
+
+.room__moon {
+  fill: rgba(243, 206, 115, 0.7);
+}
+
+.room__star {
+  fill: var(--cream);
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+.room__mount {
+  fill: rgba(21, 12, 43, 0.85);
+  stroke: var(--rose);
+  stroke-width: 3;
+}
+
+.room__portrait {
+  fill: rgba(255, 125, 158, 0.7);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: crest-beat 2.6s ease-in-out infinite;
+}
+
+.room__cord {
+  stroke: rgba(255, 240, 228, 0.3);
+  stroke-width: 2;
+}
+
+.room__shade {
+  fill: rgba(107, 47, 85, 0.95);
+  stroke: rgba(255, 240, 228, 0.45);
+  stroke-width: 2;
+}
+
+.room__bulb {
+  fill: var(--gold);
+}
+
+.room__lamplight {
+  fill: url(#houseGlow);
+  animation: lamp-pulse 5s ease-in-out infinite;
+}
+
+.room__pool {
+  fill: url(#houseGlow);
+  animation: pool-pulse 5s ease-in-out infinite;
+}
+
+@keyframes pool-pulse {
+  0%, 100% { opacity: 0.26; }
+  50% { opacity: 0.4; }
+}
+
+.room__wish {
+  fill: rgba(255, 125, 158, 0.5);
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: wish-rise 9s ease-out infinite;
+}
+
+@keyframes wish-rise {
+  0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+  25% { opacity: 0.55; }
+  100% { transform: translate(26px, -140px) scale(1.1); opacity: 0; }
+}
+
+/* --- the bed, and what is still to go in --- */
+
+.bed__frame,
+.bed__head {
+  fill: rgba(107, 47, 85, 0.8);
+  stroke: rgba(255, 178, 122, 0.4);
+  stroke-width: 2.5;
+}
+
+.bed__leg {
+  fill: rgba(21, 12, 43, 0.9);
+}
+
+.bed__mattress {
+  fill: rgba(255, 240, 228, 0.16);
+  stroke: rgba(255, 240, 228, 0.45);
+  stroke-width: 2.5;
+}
+
+.bed__pillow {
+  fill: rgba(255, 240, 228, 0.28);
+  stroke: rgba(255, 240, 228, 0.5);
+  stroke-width: 2;
+}
+
+.bed__blanket {
+  fill: rgba(255, 125, 158, 0.26);
+  stroke: rgba(255, 125, 158, 0.6);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.pile__item {
+  fill: rgba(255, 240, 228, 0.22);
+  stroke: rgba(255, 240, 228, 0.5);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.pile__item--warm {
+  fill: rgba(255, 178, 122, 0.28);
+  stroke: rgba(255, 178, 122, 0.6);
+}
+
+/* --- one clock for the whole room --- */
+
+/**
+ * Everything in here is a loop, and the loops have to agree: his hands are on
+ * the shirt when the shirt folds, and a layer lands in the case on the beat the
+ * shirt disappears into it. So nothing sets its own duration — there are two
+ * clocks, one shirt long and one case long, and each element only says which
+ * part it plays. Retiming the scene is one number, `--pack-cycle`.
+ */
+.garment,
+.garment__open,
+.garment__folded,
+.garment__sleeve,
+.figure__stoop,
+.figure--fold .figure__arm {
+  animation-duration: var(--pack-cycle);
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+.case,
+.case__lid,
+.case__layer {
+  animation-duration: calc(var(--pack-cycle) * 3);
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+/* --- the case: filled, shut, carried out, and another one brought in --- */
+
+.case {
+  animation-name: case-visit;
+}
+
+@keyframes case-visit {
+  0% { transform: translateX(-160px); opacity: 0; }
+  4%, 96% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(-160px); opacity: 0; }
+}
+
+.case__shell {
+  fill: rgba(107, 47, 85, 0.9);
+  stroke: url(#houseEdge);
+  stroke-width: 3;
+}
+
+.case__lining {
+  fill: rgba(21, 12, 43, 0.75);
+}
+
+.case__rim {
+  stroke: rgba(255, 240, 228, 0.55);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.case__keepsake {
+  fill: rgba(255, 125, 158, 0.85);
+}
+
+/* the lid swings on the back edge of the case, so its own bottom-left corner */
+.case__lid {
+  transform-box: fill-box;
+  transform-origin: left bottom;
+  animation-name: case-lid;
+}
+
+@keyframes case-lid {
+  0%, 90% { transform: rotate(-145deg); }
+  95%, 100% { transform: rotate(0deg); }
+}
+
+/* One layer per shirt, dropping in a quarter, a half and three quarters of the
+   way through the case's own loop — the three moments a shirt lands. They snap
+   back at the end of it, which is the moment the case is off the screen. */
+.case__layer {
+  fill: rgba(255, 240, 228, 0.28);
+  stroke: rgba(255, 240, 228, 0.5);
+  stroke-width: 2;
+  opacity: 0;
+}
+
+.case__layer--1 {
+  animation-name: stack-1;
+}
+
+.case__layer--2 {
+  fill: rgba(255, 178, 122, 0.26);
+  stroke: rgba(255, 178, 122, 0.55);
+  animation-name: stack-2;
+}
+
+.case__layer--3 {
+  animation-name: stack-3;
+}
+
+@keyframes stack-1 {
+  0%, 23% { transform: translateY(-16px); opacity: 0; }
+  25%, 100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes stack-2 {
+  0%, 56% { transform: translateY(-16px); opacity: 0; }
+  58%, 100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes stack-3 {
+  0%, 89% { transform: translateY(-16px); opacity: 0; }
+  91%, 100% { transform: translateY(0); opacity: 1; }
+}
+
+/* --- the shirt: off the pile, flat, folded, and into the case --- */
+
+.garment__body,
+.garment__sleeve {
+  fill: rgba(255, 240, 228, 0.34);
+  stroke: rgba(255, 240, 228, 0.68);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.garment__collar {
+  fill: none;
+  stroke: rgba(255, 240, 228, 0.68);
+  stroke-width: 2.5;
+}
+
+.garment__crease {
+  stroke: rgba(21, 12, 43, 0.45);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+/**
+ * The shirt's three loops all reset on the cycle boundary rather than easing
+ * back — a folded shirt cannot unfold itself. They can, because the shirt is
+ * out of sight from the moment it lands in the case until the next one is
+ * picked up.
+ *
+ * Off the pile, flat on the bed, then out of his hands and into the case: the
+ * middle keyframes sit where his hand is, so the shirt travels with him.
+ */
+.garment {
+  animation-name: garment-travel;
+}
+
+@keyframes garment-travel {
+  0% { transform: translate(185px, 8px); opacity: 0; }
+  2% { transform: translate(185px, 8px); opacity: 1; }
+  12% { transform: translate(0, 0); opacity: 1; }
+  46% { transform: translate(0, 0); opacity: 1; }
+  52% { transform: translate(-52px, -14px); opacity: 1; }
+  64% { transform: translate(-97px, 23px); opacity: 1; }
+  73% { transform: translate(-160px, 72px); opacity: 1; }
+  76%, 100% { transform: translate(-160px, 72px); opacity: 0; }
+}
+
+/* The last fold, and the swap: the open shirt closes onto its own bottom edge
+   as it goes, so the bundle appearing underneath is already the right size. */
+.garment__open {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation-name: garment-close;
+}
+
+.garment__folded {
+  opacity: 0;
+  animation-name: garment-tidy;
+}
+
+@keyframes garment-close {
+  0%, 38% { transform: scaleY(1); opacity: 1; }
+  46% { transform: scaleY(0.5); opacity: 0; }
+  100% { transform: scaleY(0.5); opacity: 0; }
+}
+
+@keyframes garment-tidy {
+  0%, 39% { opacity: 0; }
+  46%, 100% { opacity: 1; }
+}
+
+.garment__sleeve {
+  transform-box: fill-box;
+}
+
+/* each sleeve turns on its own shoulder, which is the corner of its own box */
+.garment__sleeve--left {
+  transform-origin: right top;
+  animation-name: sleeve-left;
+}
+
+.garment__sleeve--right {
+  transform-origin: left top;
+  animation-name: sleeve-right;
+}
+
+/* one, then the other — both at once reads as a shrug, not as folding */
+@keyframes sleeve-left {
+  0%, 20% { transform: rotate(0deg); }
+  28%, 100% { transform: rotate(-147deg); }
+}
+
+@keyframes sleeve-right {
+  0%, 28% { transform: rotate(0deg); }
+  36%, 100% { transform: rotate(147deg); }
+}
+
+/* --- him, doing the folding --- */
+
+/* the lean lives above the hips, so his feet stay where he put them */
+.figure__stoop {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation-name: fold-lean;
+}
+
+.figure--fold .figure__arm {
+  animation-name: fold-arms;
+}
+
+/* the far arm trails the near one by a hair, so the two read as two */
+.figure--fold .figure__arm--far {
+  opacity: 0.6;
+  animation-delay: -0.16s;
+}
+
+/**
+ * One arm swing, start to finish. Zero is straight down, negative reaches out
+ * over the bed on his right, positive crosses his body to the case on his left
+ * — so he never has to turn round, and the hand never stops travelling in a
+ * direction it was not already going.
+ */
+@keyframes fold-arms {
+  0% { transform: rotate(-26deg); }
+  5% { transform: rotate(-46deg); }
+  12% { transform: rotate(-72deg); }
+  18% { transform: rotate(-54deg); }
+  24% { transform: rotate(-76deg); }
+  32% { transform: rotate(-54deg); }
+  39% { transform: rotate(-76deg); }
+  46% { transform: rotate(-58deg); }
+  50% { transform: rotate(-88deg); }
+  /* one unbroken arc across his body — a stop in the middle of it reads as a
+     stutter, so the swing gets two keyframes, not five */
+  64% { transform: rotate(10deg); }
+  73% { transform: rotate(30deg); }
+  82% { transform: rotate(4deg); }
+  92%, 100% { transform: rotate(-26deg); }
+}
+
+/* his shoulders follow his hands: over the bed, then round to the case */
+@keyframes fold-lean {
+  0%, 5% { transform: rotate(4deg); }
+  18%, 44% { transform: rotate(9deg); }
+  50% { transform: rotate(3deg); }
+  64% { transform: rotate(-6deg); }
+  76% { transform: rotate(-3deg); }
+  92%, 100% { transform: rotate(4deg); }
+}
+
 /* ------------------------------------------------------------- the layout */
 
+/**
+ * Exactly one screen, never more. The rows either side of the counter take the
+ * height they need, the scene takes its band off the bottom, and the counter is
+ * handed whatever is left — see `.counter__value`, which is sized against that
+ * leftover rather than against the viewport. Nothing here can push the page
+ * past the fold, so nothing ever scrolls.
+ */
 .page {
   position: relative;
   z-index: 1;
-  min-height: 100dvh;
+  height: 100dvh;
   display: grid;
-  grid-template-rows: auto 1fr auto auto;
-  gap: clamp(1.5rem, 4vh, 3rem);
-  padding: clamp(1.75rem, 5vh, 3.5rem) var(--gutter) clamp(1.5rem, 4vh, 3rem);
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  gap: clamp(0.6rem, 2.4vh, 2.5rem);
+  padding: clamp(0.9rem, 3vh, 3rem) var(--gutter) clamp(0.9rem, 3vh, 2.5rem);
   text-align: center;
 }
 
@@ -1168,7 +1609,7 @@ body {
 .journey__arc {
   flex: 1 1 auto;
   min-width: 0;
-  height: clamp(52px, 9vw, 90px);
+  height: clamp(38px, min(9vw, 9vh), 90px);
   overflow: visible;
 }
 
@@ -1203,12 +1644,16 @@ body {
 
 /* ------------------------------------------------------------ the counter */
 
+/* A size container, so the number below can be measured against the room it
+   has been left rather than against the window. */
 .counter {
+  container-type: size;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(0.75rem, 2vh, 1.5rem);
+  gap: clamp(0.35rem, 1.5vh, 1.2rem);
 }
 
 .counter__eyebrow {
@@ -1225,7 +1670,19 @@ body {
   font-family: var(--display);
   font-optical-sizing: none;
   font-variation-settings: 'SOFT' 80, 'WONK' 1, 'opsz' 144, 'wght' 420;
+  /* the second declaration wins wherever container units are understood; the
+     first is the old viewport-only sizing, kept for anything that does not */
+  /**
+   * Sized against the row it was left, not the window: take the row's height,
+   * set aside what the eyebrow, the breakdown and their two gaps need, and give
+   * the number the rest — divided by the line height, since that is what turns
+   * a font size into the height it will actually occupy.
+   *
+   * It gives up room to everything else, but only down to a floor. Past that it
+   * is the band's turn to give way — see the short-screen rules at the end.
+   */
   font-size: clamp(4.5rem, 25vw, 18rem);
+  font-size: max(2.75rem, min(18rem, 25vw, calc((100cqh - 5.2rem) / 0.9)));
   line-height: 0.86;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
@@ -1265,7 +1722,7 @@ body {
   font-family: var(--display);
   font-optical-sizing: none;
   font-variation-settings: 'SOFT' 100, 'WONK' 1, 'opsz' 40, 'wght' 320;
-  font-size: clamp(1.05rem, 3.2vw, 1.6rem);
+  font-size: clamp(0.95rem, min(3.2vw, 3.4vh), 1.6rem);
   font-style: italic;
   line-height: 1.4;
   color: rgba(255, 240, 228, 0.88);
@@ -1346,30 +1803,32 @@ body {
   opacity: 1;
 }
 
-/* ------------------------------------------------- the page while riding */
+/* --------------------------------------------- the page while a scene runs */
 
 /* The scene owns the bottom band of the viewport, so the page stacks itself
    above it instead of printing over the train. */
-.page--riding {
+.page--scene {
   padding-bottom: calc(var(--band-h) + clamp(0.5rem, 2vh, 1.5rem));
 }
 
-.page--riding .steps {
-  padding: clamp(0.6rem, 2vh, 1rem) clamp(0.9rem, 3vw, 1.6rem);
+.page--scene .steps {
+  padding: clamp(0.4rem, 1.4vh, 0.9rem) clamp(0.9rem, 3vw, 1.6rem);
   border-radius: 1.25rem;
   background: rgba(21, 12, 43, 0.28);
   backdrop-filter: blur(6px);
   justify-self: center;
 }
 
-.page--riding .note {
+.page--scene .note {
   text-shadow: 0 2px 18px rgba(21, 12, 43, 0.75);
 }
 
 /* --------------------------------------------------------- arrival state */
 
+/* no breakdown on this one, so there is less to set aside for */
 .page--home .counter__value {
   font-size: clamp(3.5rem, 17vw, 12rem);
+  font-size: max(2.75rem, min(12rem, 17vw, calc((100cqh - 3rem) / 0.9)));
   animation: land 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -1450,8 +1909,63 @@ body {
   .passenger__head--fond,
   .passenger__head--tilted,
   .passenger__dream,
-  .passenger__wisp {
+  .passenger__wisp,
+  .band,
+  .room__star,
+  .room__portrait,
+  .room__lamplight,
+  .room__pool,
+  .room__wish,
+  .case,
+  .case__lid,
+  .case__layer,
+  .garment,
+  .garment__open,
+  .garment__folded,
+  .garment__sleeve,
+  .figure__stoop,
+  .figure--fold .figure__arm {
     animation: none;
+  }
+
+  /* the packing scene holds one moment of itself: a shirt folded on the bed,
+     him leaning over it, two already in the case */
+  .room__pool {
+    opacity: 0.32;
+  }
+
+  .room__wish {
+    opacity: 0.25;
+  }
+
+  .case__lid {
+    transform: rotate(-145deg);
+  }
+
+  .case__layer--1,
+  .case__layer--2 {
+    opacity: 1;
+  }
+
+  .garment {
+    opacity: 1;
+  }
+
+  /* the shirt he has just finished, folded on the bed */
+  .garment__open {
+    opacity: 0;
+  }
+
+  .garment__folded {
+    opacity: 1;
+  }
+
+  .figure__stoop {
+    transform: rotate(8deg);
+  }
+
+  .figure--fold .figure__arm {
+    transform: rotate(-62deg);
   }
 
   /* no sequence to play, so show its ending: the two of them, together */
@@ -1522,17 +2036,47 @@ body {
     width: 100%;
   }
 
-  .train {
-    --train-w: 150vw;
+  .band,
+  .page--scene {
     --band-h: clamp(11rem, 34vh, 18rem);
+  }
+
+  .train {
+    --stage-w: 150vw;
   }
 
   /* too narrow for the whole rake, so frame the locomotive instead */
   .train__rig {
-    margin-left: calc(var(--train-w) * -0.72);
+    margin-left: calc(var(--stage-w) * -0.72);
   }
 
-  .page--riding {
-    --band-h: clamp(11rem, 34vh, 18rem);
+  /* The room keeps more of itself than the train does — the case, him and the
+     bed are the whole story, and they are spread across it. */
+  .house {
+    --stage-w: 190vw;
+  }
+
+  .house__room {
+    margin-left: calc(var(--stage-w) * -0.52);
+  }
+}
+
+/* On a short screen the counter has hit its floor, so the scene is the one that
+   gives way — it is the part of the page that can lose height and still read. */
+@media (max-height: 640px) {
+  .band,
+  .page--scene {
+    --band-h: clamp(7rem, 26vh, 13rem);
+  }
+
+  .page {
+    gap: clamp(0.35rem, 1.6vh, 1rem);
+  }
+}
+
+/* Shorter still: the breakdown goes, the number it breaks down does not. */
+@media (max-height: 500px) {
+  .counter__breakdown {
+    display: none;
   }
 }
