@@ -17,6 +17,13 @@ markers at the bottom show both dates and which leg is running.
 Above the counter, a line runs from where I am to where I am going. It fills
 with the share of the wait already served, and a light rides the filled part.
 
+Along the bottom, the last couple of days play out as a scene. From `J-2` it is
+his flat: a case open on the floor, a heap of clothes on the bed, and him
+folding them one at a time and putting them in. When the train pulls into the
+platform the room gives way to the ride — he boards, the country runs past his
+window for the length of the journey, and at the far end he steps down into her
+arms.
+
 Built with Vite, React and TypeScript. No backend, no data leaves the browser.
 
 ## Configure it
@@ -38,6 +45,9 @@ without touching code — see [`.env.example`](.env.example).
 | `VITE_ARRIVAL_STEP` / `VITE_MOVE_IN_STEP` | Names on the two step markers |
 | `VITE_LOCALE` | Locale for the dates, e.g. `fr-FR` |
 | `VITE_TIME_ZONE` | Time zone the dates are shown in |
+| `VITE_DEPARTS_AT` | When the train leaves, and the ride scene starts running |
+| `VITE_BOARDING_LEAD_SECONDS` | How early the train pulls into the platform |
+| `VITE_PACKING_FROM_DAY` | Counter reading the packing scene starts on, `2` for J-2 |
 
 Values are read at build time, so changing one means a rebuild or redeploy.
 The countdown itself runs against the visitor's clock, so it reads correctly

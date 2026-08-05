@@ -160,6 +160,7 @@ export function Train({ origin, destination, phase, phaseElapsed, rideProgress }
   const garlandPath = `M ${GARLAND.start.x} ${GARLAND.start.y} Q ${GARLAND.control.x} ${GARLAND.control.y} ${GARLAND.end.x} ${GARLAND.end.y}`;
 
   const className = [
+    'band',
     'train',
     rolling ? 'train--scrolling' : 'train--stopped',
     running ? 'train--running' : '',
@@ -194,14 +195,14 @@ export function Train({ origin, destination, phase, phaseElapsed, rideProgress }
 
       {/* the platform stands still while the train slides in and out of it */}
       {atStation && (
-        <div className="train__stage train__stage--back">
+        <div className="stage train__fixed train__fixed--back">
           <svg viewBox="0 0 1400 320" fill="none">
             <Station name={phase === 'arrived' ? destination : origin} />
           </svg>
         </div>
       )}
 
-      <div className="train__rig">
+      <div className="stage train__rig">
         <svg className="train__svg" viewBox="0 0 1400 320" fill="none">
           <defs>
             <linearGradient id="trainSkin" x1="0" y1="0" x2="0" y2="1">
@@ -360,7 +361,7 @@ export function Train({ origin, destination, phase, phaseElapsed, rideProgress }
 
       {/* the people, on the platform in front of the train — they stay put */}
       {(walkingUp || phase === 'arrived') && (
-        <div className="train__stage train__stage--front">
+        <div className="stage train__fixed train__fixed--front">
           <svg viewBox="0 0 1400 320" fill="none">
             {/* him, walking up the platform to the door */}
             {walkingUp && <Boarder elapsed={phaseElapsed} />}

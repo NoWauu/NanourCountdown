@@ -38,6 +38,8 @@ export interface CountdownConfig {
   moveInStep: string;
   /** How early the train pulls into the platform, in seconds. */
   boardingLeadSeconds: number;
+  /** Counter reading that brings the packing scene in — 2 means it starts at J-2. */
+  packingFromDay: number;
   /** Locale used to format the dates. */
   locale: string;
   /** IANA time zone the dates are displayed in. */
@@ -60,6 +62,7 @@ export const config: CountdownConfig = {
   arrivalStep: env.VITE_ARRIVAL_STEP ?? 'I land',
   moveInStep: env.VITE_MOVE_IN_STEP ?? 'we move in',
   boardingLeadSeconds: Number(env.VITE_BOARDING_LEAD_SECONDS ?? 300),
+  packingFromDay: Number(env.VITE_PACKING_FROM_DAY ?? 2),
   locale: env.VITE_LOCALE ?? 'en-GB',
   timeZone: env.VITE_TIME_ZONE ?? 'Europe/Paris',
 };
@@ -76,4 +79,5 @@ export const journeyDates = {
   arrivesAt,
   movesInAt,
   boardingLead: config.boardingLeadSeconds * 1000,
+  packingFromDay: config.packingFromDay,
 };

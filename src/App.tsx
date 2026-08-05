@@ -3,6 +3,7 @@ import { Sky } from './components/Sky';
 import { JourneyArc } from './components/JourneyArc';
 import { Milestones } from './components/Milestones';
 import { Train } from './components/Train';
+import { House } from './components/House';
 import { config, journeyDates } from './config';
 import { useJourney } from './useCountdown';
 import { Analytics } from '@vercel/analytics/react';
@@ -21,6 +22,9 @@ export function App() {
   const copy = COPY[journey.stage];
   /** The scene runs from the moment the train pulls in until we live together. */
   const riding = journey.ridePhase !== 'waiting' && !home;
+  /** Before that, from J-2: the same man at home, filling a case. The journey
+      only ever reports one of the two, so the band never has to choose. */
+  const packing = journey.packing;
 
   const format = useMemo(
     () =>
@@ -58,8 +62,9 @@ export function App() {
           rideProgress={journey.rideProgress}
         />
       )}
+      {packing && <House />}
 
-      <main className={`page${home ? ' page--home' : ''}${riding ? ' page--riding' : ''}`}>
+      <main className={`page${home ? ' page--home' : ''}${riding || packing ? ' page--scene' : ''}`}>
         <JourneyArc
           from={journey.stage === 'travelling' ? config.fromCity : config.toCity}
           to={journey.stage === 'travelling' ? config.toCity : config.homeLabel}
